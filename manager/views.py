@@ -3,7 +3,12 @@ from django.views.generic import TemplateView
 
 from .models import LandParcel, LandMark, District, AdministrativeBoundary, Municipality, SURPII_Building, SURPII_Road, River, IDP, ConflictEvent
 from django.db.models import Count
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 
+
+class AboutView(TemplateView):
+    template_name = 'about.html'
 
 class HomeView(TemplateView):
     template_name = 'home.html'
@@ -38,10 +43,6 @@ class HomeView(TemplateView):
             .order_by("admin2")
         )
         return context
-
-
-class AboutView(TemplateView):
-    template_name = 'about.html'
 
 
 class MethodologyView(TemplateView):

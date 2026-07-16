@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import FloodExtentListView,ConflictEventListView, IDPListView, RiverListView, SURPIIBuildingListView, SURPIIRoadListView, MunicipalityView, LandParcelListView, LandParcelView, OwnerView, LandMarkView, RoadView, BuildingView, AdministrativeBoundaryView, DistrictView, RegistrationView, LoginView, LogoutView
+from .views import geoserver_proxy,FloodExtentListView,ConflictEventListView, IDPListView, RiverListView, SURPIIBuildingListView, SURPIIRoadListView, MunicipalityView, LandParcelListView, LandParcelView, OwnerView, LandMarkView, RoadView, BuildingView, AdministrativeBoundaryView, DistrictView, RegistrationView, LoginView, LogoutView
 
 urlpatterns = [
         path('landparcels/', LandParcelView.as_view(), name='landparcel-list'),
@@ -21,6 +21,9 @@ urlpatterns = [
         path('register/', RegistrationView.as_view(), name='register'),
         path('login/', LoginView.as_view(), name='login'),
         path('logout/', LogoutView.as_view(), name='logout'),
+
+        path('geoserver-proxy/', geoserver_proxy, name='geoserver-proxy'),
+
         # path('conflict-districts/', ConflictDistrictListAPIView.as_view(), name='conflict-district-list'),        
     ]
 

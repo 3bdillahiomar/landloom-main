@@ -7,12 +7,14 @@
 
 from django.urls import path
 from .views import (
-    HomeView,
     AboutView,
+    HomeView,
     MethodologyView,
     MunicipalitiesView,
     CityRiskComparisonView,
     SURPIIBuildingListView,
+    SURPIIRoadListView,
+    RiverListView,
 )
 
 urlpatterns = [
@@ -29,5 +31,15 @@ urlpatterns = [
         "api/surpii-buildings/",
         SURPIIBuildingListView.as_view(),
         name="surpii-buildings",
+    ),
+    path(
+        "api/surpii-roads/",
+        SURPIIRoadListView.as_view(),
+        name="surpii-roads",
+    ),
+    path(
+        "api/rivers/",
+        RiverListView.as_view(),
+        name="rivers",
     ),
 ]

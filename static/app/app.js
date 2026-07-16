@@ -104,6 +104,85 @@ var OpenAIP = L.tileLayer(
 );
 
 
+// IDP WMS Layer
+const idps = L.tileLayer.wms(
+  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  {
+    layers: "risk_dashboard:manager_idp",
+    format: "image/png",
+    transparent: true,
+    version: "1.1.1",
+  },
+);
+idps.addTo(map);
+
+// Add click popup for IDP WMS layer
+function getFeatureInfoUrl(map, layer, latlng) {
+  const point = map.latLngToContainerPoint(latlng, map.getZoom());
+  const size = map.getSize();
+  const bounds = map.getBounds();
+  const sw = map.options.crs.project(bounds.getSouthWest());
+  const ne = map.options.crs.project(bounds.getNorthEast());
+
+  const params = {
+    service: "WMS",
+    request: "GetFeatureInfo",
+    srs: "EPSG:3857",
+    styles: "",
+    transparent: true,
+    version: "1.1.1",
+    format: "image/png",
+    bbox: `${sw.x},${sw.y},${ne.x},${ne.y}`,
+    height: size.y,
+    width: size.x,
+    layers: layer.wmsParams.layers,
+    query_layers: layer.wmsParams.layers,
+    info_format: "application/json",
+    feature_count: 1,
+    x: Math.round(point.x),
+    y: Math.round(point.y),
+  };
+
+  return `/api/geoserver-proxy/${L.Util.getParamString(params, "", true)}`;
+}
+
+map.on("click", function (e) {
+  if (!map.hasLayer(idps)) {
+    return;
+  }
+
+  fetch(getFeatureInfoUrl(map, idps, e.latlng))
+    .then((response) => response.json())
+    .then((data) => {
+      const feature = data.features?.[0];
+
+      if (!feature) {
+        return;
+      }
+
+      const props = feature.properties || {};
+
+      L.popup({ maxWidth: 320 })
+        .setLatLng(e.latlng)
+        .setContent(`
+          <strong>Settlement:</strong> ${props.settlementName || "N/A"}<br>
+          <strong>Settlement ID:</strong> ${props.settlementDTMId || "N/A"}<br>
+          <strong>Urban Name:</strong> ${props.urbanName || "N/A"}<br>
+          <strong>Region:</strong> ${props.admin1Name || "N/A"}<br>
+          <strong>District:</strong> ${props.admin2Name || "N/A"}<br>
+          <strong>Class:</strong> ${props.settlementClass || "N/A"}<br>
+          <strong>IDP Individuals:</strong> ${props.idpIndividuals ?? "N/A"}<br>
+          <strong>IDP Households:</strong> ${props.idpHouseholds ?? "N/A"}<br>
+        `)
+        .openOn(map);
+    })
+    .catch((error) => {
+      console.error("IDP GetFeatureInfo error:", error);
+    });
+});
+
+
+
 // Conflict WMS Layer
 const conflicts = L.tileLayer.wms(
   "http://localhost:8080/geoserver/risk_dashboard/wms",
@@ -115,6 +194,88 @@ const conflicts = L.tileLayer.wms(
   }
 );
 conflicts.addTo(map);
+
+const conflictBufferLayer = L.geoJSON(null, {
+  style: {
+    color: "#ff7800",
+    weight: 2,
+    opacity: 1,
+    fillColor: "#ff7800",
+    fillOpacity: 0.2,
+  },
+}).addTo(map);
+
+function getConflictFeatureInfoUrl(map, layer, latlng) {
+  const point = map.latLngToContainerPoint(latlng, map.getZoom());
+  const size = map.getSize();
+  const bounds = map.getBounds();
+  const sw = map.options.crs.project(bounds.getSouthWest());
+  const ne = map.options.crs.project(bounds.getNorthEast());
+
+  const params = {
+    service: "WMS",
+    request: "GetFeatureInfo",
+    srs: "EPSG:3857",
+    styles: "",
+    transparent: true,
+    version: "1.1.1",
+    format: "image/png",
+    bbox: `${sw.x},${sw.y},${ne.x},${ne.y}`,
+    height: size.y,
+    width: size.x,
+    layers: layer.wmsParams.layers,
+    query_layers: layer.wmsParams.layers,
+    info_format: "application/json",
+    feature_count: 1,
+    x: Math.round(point.x),
+    y: Math.round(point.y),
+  };
+
+  return `/api/geoserver-proxy/${L.Util.getParamString(params, "", true)}`;
+}
+
+map.on("click", function (e) {
+  if (!map.hasLayer(conflicts)) {
+    return;
+  }
+
+  fetch(getConflictFeatureInfoUrl(map, conflicts, e.latlng))
+    .then((response) => response.json())
+    .then((data) => {
+      const feature = data.features?.[0];
+
+      if (!feature) {
+        conflictBufferLayer.clearLayers();
+        return;
+      }
+
+      const props = feature.properties || {};
+      const clickedPoint = turf.point([e.latlng.lng, e.latlng.lat]);
+      const buffer = turf.buffer(clickedPoint, 0.5, { units: "kilometers" });
+
+      conflictBufferLayer.clearLayers();
+      conflictBufferLayer.addData(buffer);
+
+      L.popup({ maxWidth: 320 })
+        .setLatLng(e.latlng)
+        .setContent(`
+          <strong>Event:</strong> ${props.event_type || props.eventType || "N/A"}<br>
+          <strong>Sub Event:</strong> ${props.sub_event_type || props.subEventType || "N/A"}<br>
+          <strong>Location:</strong> ${props.location || "N/A"}<br>
+          <strong>Region:</strong> ${props.admin1 || props.admin1Name || "N/A"}<br>
+          <strong>District:</strong> ${props.admin2 || props.admin2Name || "N/A"}<br>
+          <strong>Date:</strong> ${props.event_date || props.eventDate || "N/A"}<br>
+          <strong>Fatalities:</strong> ${props.fatalities ?? "N/A"}<br>
+          <strong>Actor 1:</strong> ${props.actor1 || "N/A"}<br>
+          <strong>Actor 2:</strong> ${props.actor2 || "N/A"}
+        `)
+        .openOn(map);
+    })
+    .catch((error) => {
+      console.error("Conflict GetFeatureInfo error:", error);
+      conflictBufferLayer.clearLayers();
+    });
+});
 
 
 // SURPII Buildings WMS Layer
@@ -158,19 +319,6 @@ const rivers = L.tileLayer.wms(
   },
 );
 rivers.addTo(map);
-
-
-// IDP WMS Layer
-const idps = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
-  {
-    layers: "risk_dashboard:manager_idp",
-    format: "image/png",
-    transparent: true,
-    version: "1.1.1",
-  },
-);
-idps.addTo(map);
 
 
 // [Municipalities] Fetch municipalities polygon data
@@ -368,12 +516,12 @@ var landParcels = L.geoJSON(null, {
     }
   },
 }).addTo(map);
-fetch("api/landparcels/")
-  .then((response) => response.json())
-  .then((data) => {
-    landParcels.addData(data);
-    info.update(data.count);
-  });
+// fetch("api/landparcels/")
+//   .then((response) => response.json())
+//   .then((data) => {
+//     landParcels.addData(data);
+//     info.update(data.count);
+//   });
 
 // [BUILDINGS] Fetch buildings polygon data
 var buildingsStyle = {
@@ -459,12 +607,12 @@ var landmarks = L.geoJSON(null, {
   },
 }).addTo(map);
 
-fetch("api/landmarks/")
-  .then((response) => response.json())
-  .then((data) => {
-    landmarks.addData(data);
-    info.update(data.count);
-  });
+// fetch("api/landmarks/")
+//   .then((response) => response.json())
+//   .then((data) => {
+//     landmarks.addData(data);
+//     info.update(data.count);
+//   });
 
 // Add layer control
 var baseMaps = {
@@ -484,6 +632,7 @@ var overlays = {
   Rivers: rivers,
   "IDP Settlements": idps,
   Insurgency: conflicts,
+  InsurgencyBuffer: conflictBufferLayer,
   "Historical Flood Extent": floods,
   // Buildings: buildings,
   // Roads: roads,
@@ -776,54 +925,8 @@ document
   });
 
 
+// Add event listener for idp settlement selection
 
-map.on("click", function (e) {
-  if (!map.hasLayer(idps)) return;
 
-  const point = map.latLngToContainerPoint(e.latlng, map.getZoom());
-  const size = map.getSize();
-  const bounds = map.getBounds();
 
-  const url =
-    "http://localhost:8080/geoserver/risk_dashboard/wms?" +
-    L.Util.getParamString({
-      service: "WMS",
-      version: "1.1.1",
-      request: "GetFeatureInfo",
-      layers: "risk_dashboard:manager_idp",
-      query_layers: "risk_dashboard:manager_idp",
-      bbox: bounds.toBBoxString(),
-      width: size.x,
-      height: size.y,
-      srs: "EPSG:4326",
-      info_format: "application/json",
-      x: Math.round(point.x),
-      y: Math.round(point.y),
-    });
-
-  fetch(url)
-    .then((response) => response.json())
-    .then((data) => {
-      if (!data.features.length) return;
-
-      const p = data.features[0].properties;
-
-      L.popup()
-        .setLatLng(e.latlng)
-        .setContent(
-          `
-          <h4>IDP Settlement</h4>
-          <b>Settlement:</b> ${p.settlementname}<br>
-          <b>DTM ID:</b> ${p.settlementdtmid}<br>
-          <b>Urban:</b> ${p.urbanname}<br>
-          <b>Region:</b> ${p.admin1name}<br>
-          <b>District:</b> ${p.admin2name}<br>
-          <b>Households:</b> ${p.idphouseholds}<br>
-          <b>Individuals:</b> ${p.idpindividuals}<br>
-          <b>Category:</b> ${p.populationcategory}
-        `,
-        )
-        .openOn(map);
-    });
-});
 

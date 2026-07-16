@@ -11,6 +11,10 @@ from rest_framework import status
 from django.contrib.auth import login, logout, authenticate
 from django.db.models import Count, Sum
 
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET
+import requests
+
 
 class LandParcelView(generics.ListAPIView):
     queryset = LandParcel.objects.all()
@@ -198,3 +202,23 @@ class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
+
+@require_GET
+def geoserver_proxy(request):
+    geoserver_url = "http://localhost:8080/geoserver/risk_dashboard/wms"
+    try:
+        response = requests.get(
+            geoserver_url,
+            params=request.GET,
+            timeout=30,
+        )
+        return HttpResponse(
+            response.content,
+            content_type=response.headers.get("Content-Type", "application/json"),
+            status=response.status_code,
+        )
+    except requests.RequestException as exc:
+        return JsonResponse({"error": str(exc)}, status=500)
+    
+    

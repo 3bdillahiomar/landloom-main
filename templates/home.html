@@ -183,21 +183,6 @@
 
             <br>
 
-            <!-- Conflict / Insurgency Filter
-            <div class="row">
-                <select id="conflictList" class="form-select">
-                    <option value="">Select Insurgency City </option>
-
-                    {% for conflict in conflicts %}
-                        <option value="{{ conflict.admin2 }}">
-                            {{ conflict.admin2 }}
-                        </option>
-                    {% empty %}
-                        <option value="">No Conflict Data Available</option>
-                    {% endfor %}
-                </select>
-            </div> -->
-
             <!-- Municipality Selection -->
             <div class="row">
                 <select id="municipalityList" class="form-select">
@@ -375,7 +360,10 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
         crossorigin=""
     ></script>
-
+    
+    <!-- Turf.js -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/@turf/turf@7/turf.min.js"></script> -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
     <!-- Leaflet Fullscreen Plugin -->
     <script src="{% static 'app/Control.FullScreen.js' %}"></script>
 

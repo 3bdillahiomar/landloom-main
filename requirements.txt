@@ -1,8 +1,14 @@
 asgiref==3.11.1
+certifi==2026.6.17
+charset-normalizer==3.4.9
 Django==6.0.5
 django-filter==25.2
 django-leaflet==0.33.0
 djangorestframework==3.17.1
 djangorestframework-gis==1.2.1
+idna==3.18
 psycopg2-binary==2.9.12
+requests==2.34.2
 sqlparse==0.5.5
+urllib3==2.7.0
+requests
