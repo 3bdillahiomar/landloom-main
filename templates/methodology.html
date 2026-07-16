@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Methodology | Somalia Municipality Risk Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .section {
+            margin-top: 40px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            text-align: justify;
+        }
+
+        footer img {
+            height: 40px;
+            width: auto;
+        }
+
+        footer {
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Navigation -->
+<nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <div class="container-fluid">
+
+        <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+            <img
+                src="{% static 'app/images/logo_wb_gfdrr.png' %}"
+                alt="World Bank"
+                style="height:70px; width:auto;"
+            >
+                <!-- NAGAAD Project -->
+             <img
+                src="{% static 'app/images/logo_wb_nagaad.jpg' %}"
+                alt="NAGAAD Project"
+                class="ms-3"
+                style="height:70px; width:auto;"
+            >
+
+            <span class="ms-3">
+                Somalia Municipality Risk Dashboard
+            </span>
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation">
+
+            <span class="navbar-toggler-icon"></span>
+
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        Home
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link active" href="{% url 'methodology' %}">
+                        Methodology
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'municipalities' %}">
+                        Municipalities
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'city-risk-comparison' %}">
+                        City Risk Comparison
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about' %}">
+                        About
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+</nav>
+
+<div class="container mt-5">
+
+    <h1>Methodology</h1>
+
+    <p class="lead">
+        The Somalia Municipality Risk Dashboard integrates multiple geospatial datasets
+        to assess hazard exposure, vulnerability, and overall disaster risk across
+        municipalities. Each hazard layer is modelled independently before being
+        combined with exposure and vulnerability indicators to produce standardized
+        municipality-level risk information.
+
+        The full technical methodology, including data sources, modelling approaches, and
+        validation procedures, is documented in the documentation section of the dashboard.
+    </p>
+
+    <div class="section">
+
+        <h2>How the Risk Dashboard is Built</h2>
+
+        <p>
+            Each hazard layer is independently modelled and normalised to a common
+            <strong>0–10 risk scale</strong>. Hazard, exposure, and vulnerability
+            indicators are integrated at the municipality level to support evidence-based
+            planning, investment prioritisation, and disaster risk reduction.
+        </p>
+
+    </div>
+
+    <div class="section">
+
+        <h2>1. Hazard Modelling</h2>
+
+        <p>
+            Hazard layers quantify the likelihood and intensity of natural and
+            human-induced hazards affecting municipalities.
+        </p>
+
+        <ul>
+            <li>Flood extents derived from hydrodynamic simulations for 5-, 10-, 50-, 100-, and 250-year return periods.</li>
+            <li>Drought severity estimated using SPI, SPEI, and NDVI anomalies.</li>
+            <li>Conflict hazard generated from ACLED event density and spatial clustering.</li>
+        </ul>
+
+    </div>
+
+    <div class="section">
+
+        <h2>2. Exposure Assessment</h2>
+
+        <p>
+            Exposure datasets identify the population, infrastructure, and assets
+            located within hazard-prone areas.
+        </p>
+
+        <ul>
+            <li>WorldPop population distribution.</li>
+            <li>Global Human Settlement Layer (GHSL) built-up surface.</li>
+            <li>OpenStreetMap road network.</li>
+            <li>OCHA IDP site catalogue.</li>
+            <li>National schools and health facility registers.</li>
+        </ul>
+
+    </div>
+
+    <div class="section">
+
+        <h2>3. Vulnerability Assessment</h2>
+
+        <p>
+            Socio-economic indicators are used to estimate how susceptible
+            communities are to disaster impacts.
+        </p>
+
+        <ul>
+            <li>Poverty headcount.</li>
+            <li>Female-headed households.</li>
+            <li>Population under five years of age.</li>
+            <li>Access to improved water sources.</li>
+        </ul>
+
+    </div>
+
+    <div class="section">
+
+        <h2>4. Risk Aggregation</h2>
+
+        <p>
+            All indicators are standardised and weighted using expert judgement.
+            The resulting municipality risk index is validated against historical
+            disaster impacts and available ground-reference information before
+            publication.
+        </p>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Hazard Layers</h2>
+
+        <h3>Flood</h3>
+
+        <p>
+            <strong>Current Level:</strong> High
+        </p>
+
+        <p>
+            Riverine and pluvial flooding are modelled using hydrodynamic
+            simulations for multiple return periods.
+        </p>
+
+        <h3>Drought</h3>
+
+        <p>
+            <strong>Current Level:</strong> Critical
+        </p>
+
+        <p>
+            Drought severity is classified using SPI, SPEI, and NDVI anomalies
+            against long-term climatic baselines.
+        </p>
+
+        <h3>Conflict</h3>
+
+        <p>
+            <strong>Current Level:</strong> Elevated
+        </p>
+
+        <p>
+            Conflict exposure is derived from ACLED conflict event density
+            aggregated to municipality boundaries.
+        </p>
+
+    </div>
+
+    <div class="section">
+
+        <h2>Data Sources</h2>
+
+        <p>
+            The dashboard integrates authoritative national and international
+            geospatial datasets, including:
+        </p>
+
+        <ul>
+            <li>Copernicus Emergency Management Service (EMS)</li>
+            <li>Sentinel-1 and Sentinel-2 satellite imagery</li>
+            <li>WorldPop 2020 Population Dataset (100 m)</li>
+            <li>Global Human Settlement Layer (GHSL)</li>
+            <li>OpenStreetMap (OSM)</li>
+            <li>Armed Conflict Location & Event Data Project (ACLED)</li>
+            <li>OCHA IDP Site Directory</li>
+            <li>FAO SWALIM Hydrological Data</li>
+            <li>Somalia National Bureau of Statistics (SNBS)</li>
+        </ul>
+
+    </div>
+
+</div>
+
+<!-- Municipality Partners -->
+<section class="border-top py-5 bg-white">
+
+    <div class="container text-center">
+
+        <h4 class="mb-5">
+            An interactive GIS platform that transforms fragmented geospatial data into actionable risk information, 
+            enabling evidence-based municipal planning, disaster preparedness, and resilient infrastructure investment.
+        </h4>
+
+
+        <h4 class="mb-5">
+            Through collaborative leadership, the Nagaad Project is building resilient,
+            sustainable cities that serve all communities.
+        </h4>
+
+        <div class="row justify-content-center align-items-center g-4">
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_mogadishu.jpg' %}"
+                     alt="Mogadishu"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_baydhabo.jpg' %}"
+                     alt="Baidoa"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_kismaayo.jpg' %}"
+                     alt="Kismayo"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_dhuusamareeb.jpg' %}"
+                     alt="Dhuusamareeb"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_beledweyne.jpg' %}"
+                     alt="Beledweyne"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_garoowe.jpg' %}"
+                     alt="Garoowe"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_hargeisa.jpg' %}"
+                     alt="Hargeisa"
+                     style="height:120px; width:auto;">
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<footer class="border-top bg-white py-4 mt-5">
+    <div class="container">
+
+        <div class="d-flex flex-wrap align-items-center justify-content-between">
+
+            <div class="d-flex align-items-center">
+
+                <img
+                    src="{% static 'app/images/logo_wb_gfdrr.png' %}"
+                    alt="World Bank"
+                    style="height:70px; width:auto;"
+                >
+                
+                <!-- NAGAAD Project -->
+                <img
+                    src="{% static 'app/images/logo_wb_nagaad.jpg' %}"
+                    alt="NAGAAD Project"
+                    class="ms-3"
+                    style="height:70px; width:auto;"
+                >
+                <span class="ms-3 text-secondary">
+                    © 2026 World Bank Group · SURP II (Nagaad Project)
+                </span>
+
+            </div>
+
+            <div class="text-secondary">
+                Somalia Municipality Risk Dashboard
+            </div>
+
+        </div>
+
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>

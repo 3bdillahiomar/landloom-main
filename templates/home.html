@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | Somalia Municipality Risk Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet Fullscreen Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.fullscreen@3.0.0/Control.FullScreen.css"
+    />
+
+    <!-- Leaflet Search Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-search@4.0.0/dist/leaflet-search.min.css"
+    />
+
+    <!-- Leaflet Measure Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.css"
+    />
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.min.css">
+    
+    <!-- Map Control Styles -->
+    <style>
+        /* Info Box */
+        .info {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font: 14px Arial, sans-serif;
+        }
+
+        .info h4 {
+            margin: 0 0 5px;
+            color: #333;
+        }
+
+        /* Legend */
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            border: 1px solid #555;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        .legend-name {
+            white-space: nowrap;
+        }
+        .legend-line {
+            display: inline-block;
+            width: 20px;
+            height: 0;
+            border-top: 3px solid;
+            flex-shrink: 0;
+        }
+        .legend-point {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 1px solid #ffffff;
+            flex-shrink: 0;
+        }
+                
+    </style>
+
+
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container-fluid">
+
+            <a class="navbar-brand d-flex align-items-center" href="{% url 'home' %}">
+                <img
+                    src="{% static 'app/images/logo_wb_gfdrr.png' %}"
+                    alt="World Bank"
+                    style="height: 70px; width:auto;"
+                >
+                    <!-- NAGAAD Project -->
+                <img
+                    src="{% static 'app/images/logo_wb_nagaad.jpg' %}"
+                    alt="NAGAAD Project"
+                    class="ms-3"
+                    style="height:70px; width:auto;"
+                >
+
+                <span class="ms-3">
+                    Somalia Municipality Risk Dashboard
+                </span>
+            </a>
+
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarNav"
+                aria-controls="navbarNav"
+                aria-expanded="false"
+                aria-label="Toggle navigation">
+
+                <span class="navbar-toggler-icon"></span>
+
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+
+                <ul class="navbar-nav ms-auto">
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'home' %}">
+                            Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'methodology' %}">
+                            Methodology
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'municipalities' %}">
+                            Municipalities
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'city-risk-comparison' %}">
+                            City Risk Comparison
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'about' %}">
+                            About
+                        </a>
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+
+    <div class="row">
+        <div class="col-md-8">
+            <div id="map" style="width: 100%; height: 900px;"></div>
+        </div>
+
+        <div class="col-md-4">
+
+            <br>
+
+            <!-- Conflict / Insurgency Filter
+            <div class="row">
+                <select id="conflictList" class="form-select">
+                    <option value="">Select Insurgency City </option>
+
+                    {% for conflict in conflicts %}
+                        <option value="{{ conflict.admin2 }}">
+                            {{ conflict.admin2 }}
+                        </option>
+                    {% empty %}
+                        <option value="">No Conflict Data Available</option>
+                    {% endfor %}
+                </select>
+            </div> -->
+
+            <!-- Municipality Selection -->
+            <div class="row">
+                <select id="municipalityList" class="form-select">
+                    <option value="">Select Municipality</option>
+
+                    {% for municipality in municipalities %}
+                        {% if municipality.name not in "Afgooye,Ceelasha Biyaha,Lafoole" %}
+                            <option value="{{ municipality.name }}">{{ municipality.name }}</option>
+                        {% endif %}
+                    {% empty %}
+                        <option value="">No Municipalities Available</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <!-- District Boundary Selection -->
+            <div class="row">
+                <select id="districtBoundaryList" class="form-select">
+                    <option value="">Select District</option>
+
+                    {% for district in district_boundaries %}
+                        <option value="{{ district.name }}">{{ district.name }}</option>
+                    {% empty %}
+                        <option value="">No Districts Available</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Administrative Boundary Selection -->
+            <div class="row">
+                <select id="administrativeBoundaryList" class="form-select">
+                    <option value="">Select Region</option>
+
+                    {% for admin in admin_boundaries %}
+                        <option value="{{ admin.name }}">{{ admin.name }}</option>
+                    {% empty %}
+                        <option value="">No Regions Available</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+
+            <h4>Land Use Types Distribution</h4>
+            <canvas id="landUseChart" width="700" height="300"></canvas>
+            <hr>
+            <h4>Land Parcel/Plots</h4>
+             <!-- <div id ="landmarkstable" width="600" height="200"></div> -->
+             <table id="parcels-table" class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Parcel Number</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Area</th>
+                        <th scope="col">Land Use Type</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+<!-- Municipality Partners -->
+<section class="border-top py-5 bg-white">
+
+    <div class="container text-center">
+
+        <h4 class="mb-5">
+            An interactive GIS platform that transforms fragmented geospatial data into actionable risk information, 
+            enabling evidence-based municipal planning, disaster preparedness, and resilient infrastructure investment.
+        </h4>
+
+
+        <h4 class="mb-5">
+            Through collaborative leadership, the Nagaad Project is building resilient,
+            sustainable cities that serve all communities.
+        </h4>
+
+        <div class="row justify-content-center align-items-center g-4">
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_mogadishu.jpg' %}"
+                     alt="Mogadishu"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_baydhabo.jpg' %}"
+                     alt="Baidoa"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_kismaayo.jpg' %}"
+                     alt="Kismayo"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_dhuusamareeb.jpg' %}"
+                     alt="Dhuusamareeb"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_beledweyne.jpg' %}"
+                     alt="Beledweyne"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_garoowe.jpg' %}"
+                     alt="Garoowe"
+                     style="height:120px; width:auto;">
+            </div>
+
+            <div class="col-auto">
+                <img src="{% static 'app/images/logo_municipalities/logo_hargeisa.jpg' %}"
+                     alt="Hargeisa"
+                     style="height:120px; width:auto;">
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+    </div>
+    <footer class="border-top bg-white py-4 mt-5">
+        <div class="container">
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between">
+
+                <!-- Left -->
+                <div class="d-flex align-items-center">
+
+                    <img
+                        src="{% static 'app/images/logo_wb_gfdrr.png' %}"
+                        alt="World Bank"
+                        style="height:70px; width:auto;"
+                    >
+                        <!-- NAGAAD Project -->
+                    <img
+                        src="{% static 'app/images/logo_wb_nagaad.jpg' %}"
+                        alt="NAGAAD Project"
+                        class="ms-3"
+                        style="height:70px; width:auto;"
+                    >
+
+                    <span class="ms-3 text-secondary">
+                        © 2026 World Bank Group · SURP II (Nagaad Project)
+                    </span>
+
+                </div>
+
+                <!-- Right -->
+                <div class="text-secondary">
+                    Somalia Municipality Risk Dashboard
+                </div>
+
+            </div>
+
+        </div>
+    </footer>
+
+
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" 
+    crossorigin="anonymous"></script>
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+
+    <!-- Leaflet Fullscreen Plugin -->
+    <script src="{% static 'app/Control.FullScreen.js' %}"></script>
+
+    <!-- Leaflet Search Plugin -->
+    <script src="{% static 'app/leaflet-search.js' %}"></script>
+
+    <!-- Leaflet Measurement Plugin
+    <script src="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.js"></script> -->
+
+    <!-- Your application -->
+    <script src="{% static 'app/app.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
+            
+
+
+    <script>
+    const landUseTypes = {{ land_use_types|safe }};
+
+    console.log(landUseTypes);
+    console.log(typeof landUseTypes);
+
+    const chart_context = document
+        .getElementById('landUseChart')
+        .getContext('2d');
+
+    new Chart(chart_context, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(landUseTypes),
+            datasets: [{
+                label: 'Land Use Types Count',
+                data: Object.values(landUseTypes),
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(255, 159, 64, 0.2)',
+                    'rgba(255, 205, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(201, 203, 207, 0.2)'
+                ],
+                borderColor: [
+                    'rgb(255, 99, 132)',
+                    'rgb(255, 159, 64)',
+                    'rgb(255, 205, 86)',
+                    'rgb(75, 192, 192)',
+                    'rgb(54, 162, 235)',
+                    'rgb(153, 102, 255)',
+                    'rgb(201, 203, 207)'
+                ],
+                borderWidth: 1
+            }]
+        }
+    });
+</script>
+
+<!-- Script for data tables -->
+<script>
+    const table = $('#parcels-table').DataTable({
+        ajax: {
+            url: '/api/landparcels/list/',
+            dataSrc: ''
+        },
+        columns: [
+            { data: 'parcel_number' },
+            { data: 'owner' },
+            { data: 'area' },
+            { data: 'land_use_type' }
+        ], 
+        responsive: true,
+        autoWidth: false,
+        pageLength: 5,
+        lengthMenu: [5, 10, 25, 50, 100],
+    });
+
+</script>
+
+</body>
+
+</html>
+
+

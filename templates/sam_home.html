@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LandLoom Home</title>
+
+    <!-- Leaflet CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+
+    <!-- Leaflet Fullscreen Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet.fullscreen@3.0.0/Control.FullScreen.css"
+    />
+
+    <!-- Leaflet Search Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-search@4.0.0/dist/leaflet-search.min.css"
+    />
+
+    <!-- Leaflet Measure Plugin CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.css"
+    />
+    
+    <!-- Map Control Styles -->
+    <style>
+        /* Info Box */
+        .info.legend {
+    background: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    font-size: 13px;
+    line-height: 18px;
+}
+
+.info.legend h4 {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    border: 1px solid #555;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+.legend-name {
+    white-space: nowrap;
+}
+        
+    </style>
+
+
+</head>
+
+<body>
+
+    <h1>LandLoom Home Page</h1>
+
+    <p>This is the home page of the LandLoom application for Somalia.</p>
+
+    <p>
+        You can find the land parcels, buildings, roads, and key landmarks across the
+        Mogadisho using the interactive map below.
+    </p>
+
+    <p>
+      The dashboard is still underdevelopment and many features will be
+      added as the time goes on.
+    </p>
+
+    <div class="row">
+        <div class="col">
+            <a href="#about">About Us</a>
+        </div>
+    </div>
+
+    <div id="map" style="height: 500px;"></div>
+
+    <!-- Leaflet JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+        crossorigin=""
+    ></script>
+
+    <!-- Leaflet Fullscreen Plugin -->
+    <!-- <script src="Control.FullScreen.js"></script> -->
+
+    <!-- Leaflet Search Plugin -->
+    <!-- <script src="leaflet-search.js"></script> -->
+
+    <!-- Leaflet Measurement Plugin
+    <script src="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.js"></script> -->
+
+    <!-- Your application -->
+    <script src="app.js"></script>
+
+</body>
+
+</html>
+

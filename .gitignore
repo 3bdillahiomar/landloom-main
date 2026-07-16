@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.env
+uploads/
+staticfiles/
+.vscode/
+.DS_Store
+
+
+# Local GIS data
+manager/data/
+
+# SCSS source files
+static/app/scss/
