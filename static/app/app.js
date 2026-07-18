@@ -67,16 +67,16 @@ var Esri_NatGeoWorldMap = L.tileLayer(
   },
 );
 
-// CartoDB Positron
-var CartoDB_Positron = L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-  {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
-    subdomains: "abcd",
-    maxZoom: 20,
-  },
-);
+// // CartoDB Positron
+// var CartoDB_Positron = L.tileLayer(
+//   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+//   {
+//     attribution:
+//       '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/">CARTO</a>',
+//     subdomains: "abcd",
+//     maxZoom: 20,
+//   },
+// );
 
 // OpenTopoMap
 var OpenTopoMap = L.tileLayer(
@@ -88,21 +88,23 @@ var OpenTopoMap = L.tileLayer(
   },
 );
 
-// OpenAIP Basemap
-var OpenAIP = L.tileLayer(
-  "https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{y}.{ext}",
-  {
-    attribution:
-      '<a href="https://www.openaip.net/">openAIP Data</a> (CC BY-NC-SA)',
-    ext: "png",
-    minZoom: 4,
-    maxZoom: 14,
-    tms: true,
-    detectRetina: true,
-    subdomains: "12",
-  },
-);
+// // OpenAIP Basemap
+// var OpenAIP = L.tileLayer(
+//   "https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{y}.{ext}",
+//   {
+//     attribution:
+//       '<a href="https://www.openaip.net/">openAIP Data</a> (CC BY-NC-SA)',
+//     ext: "png",
+//     minZoom: 4,
+//     maxZoom: 14,
+//     tms: true,
+//     detectRetina: true,
+//     subdomains: "12",
+//   },
+// );
 
+
+// Section: WMS Layers
 
 // IDP WMS Layer
 const idps = L.tileLayer.wms(
@@ -279,16 +281,24 @@ map.on("click", function (e) {
 
 
 // SURPII Buildings WMS Layer
+map.createPane("buildingsPane");
+map.getPane("buildingsPane").style.zIndex = 500;
+map.getPane("buildingsPane").style.pointerEvents = "none";
+
 const surpiiBuildings = L.tileLayer.wms(
   "http://localhost:8080/geoserver/risk_dashboard/wms",
   {
     layers: "risk_dashboard:manager_surpii_building",
+    pane: "buildingsPane",
     format: "image/png",
     transparent: true,
     version: "1.1.1",
     attribution: "GeoServer",
   },
 );
+
+
+
 
 // SURPII Roads WMS Layer
 map.createPane("roadsPane");
@@ -620,15 +630,15 @@ var baseMaps = {
   "Esri World Imagery": Esri_WorldImagery,
   "Esri Nat Geo WorldMap": Esri_NatGeoWorldMap,
   OpenStreetMap: OSM,
-  "CartoDB Positron": CartoDB_Positron,
-  OpenTopoMap: OpenTopoMap,
+  // "CartoDB Positron": CartoDB_Positron,
+  // OpenTopoMap: OpenTopoMap,
 };
 
 var overlays = {
   Municipalities: municipalities,
   // "Land Parcels": landParcels,
   "Google Buildings": surpiiBuildings,
-  "SURPII Roads": surpiiRoads,
+  "OSM Roads": surpiiRoads,
   Rivers: rivers,
   "IDP Settlements": idps,
   Insurgency: conflicts,
@@ -646,6 +656,8 @@ var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
 var scale = L.control
   .scale((position = "bottomleft"), (metric = true), (imperial = false))
   .addTo(map);
+
+
 
 // search control for landmarks
 // var allLayers = L.featureGroup([roads, landmarks]).addTo(map)
@@ -742,11 +754,11 @@ function updateLegend(div) {
       type: "box",
       color: "#ff9900",
     },
-    "SURPII Buildings": {
+    "Google Buildings": {
       type: "box",
       color: "#ff0000",
     },
-    "SURPII Roads": {
+    "OSM Roads": {
       type: "line",
       color: "#b6b3b3",
     },
@@ -775,6 +787,8 @@ function updateLegend(div) {
       color: "#971f1f",
     },
   };
+  // console.log(Object.keys(overlays));
+  // console.log(legendStyles);
 
   Object.keys(overlays).forEach(function (name) {
     const layer = overlays[name];

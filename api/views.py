@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from .serializers import FloodExtentSerializer,ConflictEventSerializer, IDPSerializer, RiverSerializer, SURPIIRoadSerializer, SURPIIBuildingSerializer, LandParcelSerializer, LandParcelListSerializer, MunicipalitySerializer, OwnerSerializer, LandMarkSerializer, RoadSerializer, BuildingSerializer, AdministrativeBoundarySerializer, DistrictSerializer, RegistrationSerializer, LoginSerializer
+from .serializers import ConflictEventSerializer,FloodExtentSerializer, IDPSerializer, RiverSerializer, SURPIIRoadSerializer, SURPIIBuildingSerializer, LandParcelSerializer, LandParcelListSerializer, MunicipalitySerializer, OwnerSerializer, LandMarkSerializer, RoadSerializer, BuildingSerializer, AdministrativeBoundarySerializer, DistrictSerializer, RegistrationSerializer, LoginSerializer
 from rest_framework import generics
 from manager.models import FloodExtent ,ConflictEvent, IDP, River, SURPII_Road ,SURPII_Building, LandParcel, Municipality, Owner, LandMark, Road, Building, AdministrativeBoundary, District
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,6 +28,17 @@ class LandParcelListView(generics.ListAPIView):
     pagination_class = None 
 
 
+class ConflictSummaryAPIView(APIView):
+    def get(self, request):
+        data = (
+            ConflictEvent.objects
+            .values("year")
+            .annotate(events=Count("id"))
+            .order_by("year")
+        )
+
+        return Response(list(data))
+    
 class OwnerView(generics.ListAPIView):
     queryset = Owner.objects.all()
     serializer_class = OwnerSerializer
@@ -131,43 +142,39 @@ class RiverListView(generics.ListAPIView):
 
         return queryset
 
-class ConflictEventListView(generics.ListAPIView):
+
+class ConflictEventView(generics.ListAPIView):
     serializer_class = ConflictEventSerializer
 
     def get_queryset(self):
         queryset = ConflictEvent.objects.all()
 
         event_type = self.request.query_params.get("event_type")
-        admin1 = self.request.query_params.get("admin1")
         admin2 = self.request.query_params.get("admin2")
         event_date = self.request.query_params.get("event_date")
+        fatalities = self.request.query_params.get("fatalities")
+        actor1 = self.request.query_params.get("actor1")
+        actor2 = self.request.query_params.get("actor2")
 
         if event_type:
             queryset = queryset.filter(event_type__icontains=event_type)
-
-        if admin1:
-            queryset = queryset.filter(admin1__icontains=admin1)
 
         if admin2:
             queryset = queryset.filter(admin2__icontains=admin2)
 
         if event_date:
             queryset = queryset.filter(event_date=event_date)
+        
+        if fatalities:
+            queryset = queryset.filter(fatalities=fatalities)
+        
+        if actor1:
+            queryset = queryset.filter(actor1__icontains=actor1)
+
+        if actor2:
+            queryset = queryset.filter(actor2__icontains=actor2)
 
         return queryset
-
-
-# class ConflictDistrictListAPIView(APIView):
-#     def get(self, request):
-#         districts = (
-#             ConflictEvent.objects.exclude(admin2__isnull=True)
-#             .exclude(admin2="")
-#             .values_list("admin2", flat=True)
-#             .distinct()
-#             .order_by("admin2")
-#         )
-
-#         return Response(list(districts))
 
 class FloodExtentListView(generics.ListAPIView):
     queryset = FloodExtent.objects.all()

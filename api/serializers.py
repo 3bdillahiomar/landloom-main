@@ -22,6 +22,7 @@ class LandParcelListSerializer(serializers.ModelSerializer):
         # fields = ("id", "owner", "parcel_number", "land_use_type", "description")
         exclude = ["geom","created_at", "updated_at"] 
 
+
 class OwnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Owner
