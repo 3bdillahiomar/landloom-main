@@ -129,7 +129,55 @@ Base path: `/api/`
 - The project expects geospatial libraries (GDAL/GEOS) to be correctly installed and referenced.
 - If your local GDAL/GEOS paths differ, update the values in `landloom/settings.py`.
 
-## Author
+## Municipal Coverage
 
-Abdillahi Omar
+<p align="center">
+  Through collaborative leadership, the Nagaad Project is building resilient,
+  sustainable cities that serve all communities.
+</p>
 
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_mogadishu.jpg" alt="Mogadishu" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_baydhabo.jpg" alt="Baidoa" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_kismaayo.jpg" alt="Kismayo" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_dhuusamareeb.jpg" alt="Dhuusamareeb" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_beledweyne.jpg" alt="Beledweyne" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_garoowe.jpg" alt="Garoowe" height="80">
+    </td>
+    <td align="center">
+      <img src="static/app/images/logo_municipalities/logo_hargeisa.jpg" alt="Hargeisa" height="80">
+    </td>
+  </tr>
+
+  <tr>
+    <td align="center">Mogadishu</td>
+    <td align="center">Baidoa</td>
+    <td align="center">Kismayo</td>
+    <td align="center">Dhuusamareeb</td>
+    <td align="center">Beledweyne</td>
+    <td align="center">Garoowe</td>
+    <td align="center">Hargeisa</td>
+  </tr>
+</table>
+
+---
+
+## Developer
+<p align="">
+  <strong>Abdillahi Omar</strong><br>
+  GIS Developer & Geospatial Analyst<br>
+  GFDRR, The World Bank Group<br>
+  <a href="mailto:aomar6@worldbank.org">aomar6@worldbank.org</a>
+</p>
