@@ -10,6 +10,13 @@ var map = L.map("map", {
   minZoom: 5,
 }).fitBounds(bounds);
 
+map.createPane("baseMapPane");
+map.getPane("baseMapPane").style.zIndex = 200;
+
+map.createPane("droughtPane");
+map.getPane("droughtPane").style.zIndex = 350;
+map.getPane("droughtPane").style.pointerEvents = "none";
+
 // // Add a control to display the number of landmarks on the map
 // const info = L.control({
 //   position: "topright",
@@ -105,6 +112,114 @@ var OpenTopoMap = L.tileLayer(
 
 
 // Section: WMS Layers
+
+// GeoServer WMS endpoint
+const geoserverUrl = "http://localhost:8080/geoserver/drought/wms";
+
+
+// Drought WMS Layer
+const droughtLayers = {
+    2015: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2015_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75, 
+        pane: "droughtPane"
+    }),
+
+    2016: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2016_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2017: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2017_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2018: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2018_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2019: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2019_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2020: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2020_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2021: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2021_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2022: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2022_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2023: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2023_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2024: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2024_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    }),
+
+    2025: L.tileLayer.wms(geoserverUrl, {
+        layers: "drought:PDI_Yearly_Classified_2025_masked",
+        format: "image/png",
+        transparent: true,
+        version: "1.1.1",
+        opacity: 0.75,
+        pane: "droughtPane"
+    })
+};
+let droughtLayer = droughtLayers[2015];
+// droughtLayer.addTo(map);
 
 // IDP WMS Layer
 const idps = L.tileLayer.wms(
@@ -644,6 +759,7 @@ var overlays = {
   Insurgency: conflicts,
   InsurgencyBuffer: conflictBufferLayer,
   "Historical Flood Extent": floods,
+  "Annual Drought Severity": droughtLayer,
   // Buildings: buildings,
   // Roads: roads,
   // Landmarks: landmarks,
@@ -652,6 +768,34 @@ var overlays = {
 };
 
 var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+
+// Keep drought layer above the basemap
+map.on("baselayerchange", function () {
+    if (map.hasLayer(droughtLayer)) {
+        droughtLayer.bringToFront();
+    }
+});
+
+// Handle drought year selection change
+document.getElementById("droughtYearList").addEventListener("change", function () {
+    const year = this.value;
+
+    // Was the drought layer currently displayed?
+    const wasVisible = map.hasLayer(droughtLayer);
+
+    // Remove the current layer
+    if (wasVisible) {
+        map.removeLayer(droughtLayer);
+    }
+
+    // Switch to the selected year
+    droughtLayer = droughtLayers[year];
+
+    // Add the new layer back if it was previously visible
+    if (wasVisible) {
+        droughtLayer.addTo(map);
+    }
+});
 
 var scale = L.control
   .scale((position = "bottomleft"), (metric = true), (imperial = false))
@@ -778,6 +922,10 @@ function updateLegend(div) {
       type: "box",
       color: "#6ec5ff",
     },
+    "Annual Drought Severity": {
+      type: "raster",
+      color: "raster",
+    },
     Regions: {
       type: "line",
       color: "#555555",
@@ -789,27 +937,69 @@ function updateLegend(div) {
   };
   // console.log(Object.keys(overlays));
   // console.log(legendStyles);
-
+  
+  // Loop through the overlays and add legend items for visible layers
   Object.keys(overlays).forEach(function (name) {
     const layer = overlays[name];
+    console.log(name, map.hasLayer(layer));
 
     if (map.hasLayer(layer)) {
       const style = legendStyles[name];
-
+      console.log("Style:", name, style);
       if (!style) return;
 
-      html += `
+if (style.type === "raster") {
+  const selectedYear = document.getElementById("droughtYearList").value;
+
+    html += `
         <div class="legend-item">
-          ${
-            style.type === "box"
-              ? `<span class="legend-color" style="background:${style.color};"></span>`
-              : style.type === "line"
-                ? `<span class="legend-line" style="border-top:3px solid ${style.color};"></span>`
-                : `<span class="legend-point" style="background:${style.color};"></span>`
-          }
-          <span class="legend-name">${name}</span>
+            <strong>Annual Drought Severity (${selectedYear})</strong>
         </div>
-      `;
+
+
+        <div class="legend-item">
+            <span class="legend-color" style="background:#d2fbd2"></span>
+            <span class="legend-name">No Drought</span>
+        </div>
+
+        <div class="legend-item">
+            <span class="legend-color" style="background:#ffffbe"></span>
+            <span class="legend-name">Mild Drought</span>
+        </div>
+
+        <div class="legend-item">
+            <span class="legend-color" style="background:#e6987b"></span>
+            <span class="legend-name">Moderate Drought</span>
+        </div>
+
+        <div class="legend-item">
+            <span class="legend-color" style="background:#d03a27"></span>
+            <span class="legend-name">Severe Drought</span>
+        </div>
+
+        <div class="legend-item">
+            <span class="legend-color" style="background:#930905"></span>
+            <span class="legend-name">Extreme Drought</span>
+        </div>
+    `;
+
+} else {
+
+    html += `
+        <div class="legend-item">
+            ${
+                style.type === "box"
+                    ? `<span class="legend-color" style="background:${style.color};"></span>`
+                    : style.type === "line"
+                        ? `<span class="legend-line" style="border-top:3px solid ${style.color};"></span>`
+                        : `<span class="legend-point" style="background:${style.color};"></span>`
+            }
+
+            <span class="legend-name">${name}</span>
+        </div>
+    `;
+
+}
     }
   });
 
@@ -939,7 +1129,30 @@ document
   });
 
 
-// Add event listener for idp settlement selection
+// Add event listener for Drought Year selection
+document
+    .getElementById("droughtYearList")
+    .addEventListener("change", function () {
+
+        const year = this.value;
+
+        const wasVisible = map.hasLayer(droughtLayer);
+
+        if (wasVisible) {
+            map.removeLayer(droughtLayer);
+        }
+
+        droughtLayer = droughtLayers[year];
+
+        overlays["Annual Drought Severity"] = droughtLayer;
+
+        if (wasVisible) {
+            droughtLayer.addTo(map);
+        }
+
+        updateLegend(legend._div);
+
+    });
 
 
 
