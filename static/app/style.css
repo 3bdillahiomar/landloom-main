@@ -165,3 +165,26 @@ body {
     width: 100%;
     height: 700px;
 }
+
+/* IDP Table */
+#idpTable {
+    width: 100% !important;
+}
+
+#idpTable th,
+#idpTable td {
+    vertical-align: middle;
+}
+
+#idpTable td:nth-child(6),
+#idpTable th:nth-child(6) {
+    white-space: normal;
+    word-break: break-word;
+}
+
+#idpTable td:nth-child(7),
+#idpTable td:nth-child(8),
+#idpTable th:nth-child(7),
+#idpTable th:nth-child(8) {
+    text-align: right;
+}

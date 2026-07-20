@@ -16,6 +16,149 @@ from django.views.decorators.http import require_GET
 import requests
 
 
+# # IDP Settlement API View
+# class IDPSettlementAPIView(APIView):
+#     def get(self, request):
+
+#         settlements = IDP.objects.values(
+#             "settlementName",
+#             "urbanName",
+#             "admin1Name",
+#             "populationCategory",
+#             "idpHouseholds",
+#             "idpIndividuals",
+#         ).order_by("urbanName", "settlementName")
+
+#         return Response(list(settlements))
+
+# Dashboard summary view
+class DashboardSummaryAPIView(APIView):
+    def get(self, request):
+
+        # Dashboard totals
+        totals = {
+            "municipalities": Municipality.objects.count(),
+
+            "idp_settlements": IDP.objects.count(),
+
+            "idp_households": (
+                IDP.objects.aggregate(
+                    total=Sum("idpHouseholds")
+                )["total"] or 0
+            ),
+
+            "idp_individuals": (
+                IDP.objects.aggregate(
+                    total=Sum("idpIndividuals")
+                )["total"] or 0
+            ),
+
+            "events": ConflictEvent.objects.count(),
+
+            "fatalities": (
+                ConflictEvent.objects.aggregate(
+                    total=Sum("fatalities")
+                )["total"] or 0
+            ),
+        }
+
+        # National conflict events and fatalities by year
+        events_by_year = list(
+            ConflictEvent.objects
+            .values("year")
+            .annotate(
+                events=Count("id"),
+                fatalities=Sum("fatalities"),
+            )
+            .order_by("year")
+        )
+
+        # Conflict statistics by municipality
+        municipalities = []
+
+        municipality_names = (
+            ConflictEvent.objects
+            .values_list("admin2", flat=True)
+            .exclude(admin2__isnull=True)
+            .exclude(admin2="")
+            .distinct()
+            .order_by("admin2")
+        )
+
+        for municipality in municipality_names:
+
+            municipality_events = ConflictEvent.objects.filter(
+                admin2=municipality
+            )
+
+            municipalities.append({
+                "name": municipality,
+
+                "events": municipality_events.count(),
+
+                "fatalities": (
+                    municipality_events.aggregate(
+                        total=Sum("fatalities")
+                    )["total"] or 0
+                ),
+
+                "events_by_year": list(
+                    municipality_events
+                    .values("year")
+                    .annotate(
+                        events=Count("id"),
+                        fatalities=Sum("fatalities"),
+                    )
+                    .order_by("year")
+                ),
+            })
+
+        # IDP statistics by municipality
+        idps_by_municipality = []
+        excluded = [
+            "Afgooye",
+            "Lafoole",
+            "Ceelasha Biyaha",
+        ]
+
+        idp_municipalities = (
+            IDP.objects
+            .values_list("urbanName", flat=True)
+            .exclude(urbanName__isnull=True)
+            .exclude(urbanName="")
+            .exclude(urbanName__in=excluded)
+            .distinct()
+            .order_by("urbanName")
+        )
+
+        for municipality in idp_municipalities:
+
+            municipality_idps = IDP.objects.filter(
+                urbanName=municipality
+            )
+
+            idps_by_municipality.append({
+                "name": municipality,
+                "settlements": municipality_idps.count(),
+                "households": (
+                    municipality_idps.aggregate(
+                        total=Sum("idpHouseholds")
+                    )["total"] or 0
+                ),
+                "individuals": (
+                    municipality_idps.aggregate(
+                        total=Sum("idpIndividuals")
+                    )["total"] or 0
+                ),
+            })
+
+        return Response({
+            "totals": totals,
+            "events_by_year": events_by_year,
+            "municipalities": municipalities,
+            "idps_by_municipality": idps_by_municipality,
+        })
+
 class LandParcelView(generics.ListAPIView):
     queryset = LandParcel.objects.all()
     serializer_class = LandParcelSerializer
@@ -27,17 +170,6 @@ class LandParcelListView(generics.ListAPIView):
     filter_backends = [DjangoFilterBackend]
     pagination_class = None 
 
-
-class ConflictSummaryAPIView(APIView):
-    def get(self, request):
-        data = (
-            ConflictEvent.objects
-            .values("year")
-            .annotate(events=Count("id"))
-            .order_by("year")
-        )
-
-        return Response(list(data))
     
 class OwnerView(generics.ListAPIView):
     queryset = Owner.objects.all()

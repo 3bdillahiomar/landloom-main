@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ConflictEventView, geoserver_proxy,FloodExtentListView,ConflictEventView, IDPListView, RiverListView, SURPIIBuildingListView, SURPIIRoadListView, MunicipalityView, LandParcelListView, LandParcelView, OwnerView, LandMarkView, RoadView, BuildingView, AdministrativeBoundaryView, DistrictView, RegistrationView, LoginView, LogoutView
+from .views import DashboardSummaryAPIView, ConflictEventView, geoserver_proxy,FloodExtentListView, IDPListView, RiverListView, SURPIIBuildingListView, SURPIIRoadListView, MunicipalityView, LandParcelListView, LandParcelView, OwnerView, LandMarkView, RoadView, BuildingView, AdministrativeBoundaryView, DistrictView, RegistrationView, LoginView, LogoutView
 
 urlpatterns = [
     # Core GIS Layers
@@ -12,6 +12,10 @@ urlpatterns = [
     path("administrative-boundaries/", AdministrativeBoundaryView.as_view(), name="administrative-boundary-list"),
     path("districts/", DistrictView.as_view(), name="district-list"),
     path("municipalities/", MunicipalityView.as_view(), name="municipality-list"),
+
+    # Dashboard Summary
+    path("dashboard-summary/", DashboardSummaryAPIView.as_view(), name="dashboard-summary"),
+    # path("idp-settlements/", IDPSettlementAPIView.as_view(), name="idp-settlement-list"),
 
     # Risk Layers
     path("idps/", IDPListView.as_view(), name="idp-list"),
