@@ -172,7 +172,34 @@ Base path: `/api/`
   </tr>
 </table>
 
----
+## Project Partners
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <img
+        src="static/app/images/logo_wb_gfdrr.png"
+        alt="World Bank Group and GFDRR"
+        height="70"
+      />
+    </td>
+
+  </tr>
+
+  <tr>
+    <td align="center">
+      World Bank Group and GFDRR
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <strong>© 2026 World Bank Group · SURP II (Nagaad Project)</strong>
+</p>
+
+<p align="center">
+  Somalia Municipality Risk Dashboard
+</p>
 
 ## Developer
 <p align="">
