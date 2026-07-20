@@ -11,7 +11,7 @@ The dashboard integrates administrative boundaries, infrastructure, flood and dr
 Somalia Municipality Risk Dashboard is a geospatial web platform for exploring municipality-level risk indicators in Somalia. It combines Django, GeoDjango, PostGIS, Django REST Framework, and Leaflet to serve interactive maps, analytics pages, and GIS-ready APIs.
 
 
-## What This Project Provides
+## Project Overview
 
 - Interactive Leaflet-based map experience
 - Municipality and risk-focused dashboards
