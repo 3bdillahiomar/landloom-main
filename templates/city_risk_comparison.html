@@ -35,6 +35,26 @@
         p {
             text-align: justify;
         }
+
+        .hero-label {
+            letter-spacing: 0.14em;
+            color: #1a3569;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .comparison-card {
+            border: 1px solid #d9e2ef;
+            border-radius: 20px;
+            background: #ffffff;
+            padding: 28px;
+        }
+
+        .chart-wrap {
+            position: relative;
+            min-height: 460px;
+        }
+
         footer img {
              height: 40px;
             width: auto;
@@ -107,13 +127,13 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'city-risk-comparison' %}">
+                    <a class="nav-link active" href="{% url 'city-risk-comparison' %}">
                         City Risk Comparison
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link active" href="{% url 'about' %}">
+                    <a class="nav-link" href="{% url 'about' %}">
                         About
                     </a>
                 </li>
@@ -127,32 +147,34 @@
 
     <div class="container mt-5">
 
-        <h1>About Somalia Municipality Risk Dashboard</h1>
+        <p class="hero-label mb-2">CITY RISK COMPARISON</p>
+
+        <h1>Compare risk indicators across cities</h1>
 
         <p class="lead">
-            The Somalia Municipality Risk Dashboard is an interactive Geographic Information System (GIS)
-            designed to support land administration, cadastral management,
-            and spatial planning in Somalia. The platform integrates land
-            parcels, administrative boundaries, buildings, roads,
-            landmarks, and other spatial datasets into a single web-based
-            dashboard for visualization and analysis.
+            Side-by-side scores (0-10) for flood, drought and conflict hazards.
         </p>
 
 
         <div class="section">
 
-            <h2>City Risk Comparison</h2>
+            <h2>Hazard score by city</h2>
 
             <p>
-                The City Risk Comparison feature allows users to compare
-                multiple municipalities in Somalia based on various risk
-                indicators, including natural hazards, population density,
-                and infrastructure vulnerability. 
-
-                The full comparison is under development and will be available in future releases of the dashboard.
+                The chart compares key hazard indicators across municipalities in Somalia using a common
+                0-10 scale, helping users quickly identify where flood, drought, and conflict risks are
+                relatively higher and prioritize risk-informed planning actions.
             </p>
 
         </div>
+
+        <div class="comparison-card mt-4">
+            <div class="chart-wrap">
+                <canvas id="hazardScoreChart"></canvas>
+            </div>
+        </div>
+
+    </div>
 
 
 
@@ -259,8 +281,116 @@
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        const hazardLabels = [
+            "Mogadishu",
+            "Hargeisa",
+            "Garoowe",
+            "Beledweyne",
+            "Dhuusamareeb",
+            "Baydhabo",
+            "Kismaayo"
+        ];
+
+        const hazardChart = new Chart(
+            document.getElementById("hazardScoreChart"),
+            {
+                type: "bar",
+                data: {
+                    labels: hazardLabels,
+                    datasets: [
+                        {
+                            label: "flood",
+                            data: [7, 6, 4, 9, 3, 5, 6],
+                            backgroundColor: "rgba(13, 139, 224, 0.72)",
+                            borderColor: "rgb(13, 139, 224)",
+                            borderWidth: 1,
+                            borderRadius: 0,
+                            barPercentage: 0.92,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: "drought",
+                            data: [4, 6, 8, 5, 7, 8, 5],
+                            backgroundColor: "rgba(230, 156, 0, 0.72)",
+                            borderColor: "rgb(230, 156, 0)",
+                            borderWidth: 1,
+                            borderRadius: 0,
+                            barPercentage: 0.92,
+                            categoryPercentage: 0.8
+                        },
+                        {
+                            label: "conflict",
+                            data: [9, 2, 5, 6, 8, 7, 6],
+                            backgroundColor: "rgba(239, 37, 51, 0.72)",
+                            borderColor: "rgb(239, 37, 51)",
+                            borderWidth: 1,
+                            borderRadius: 0,
+                            barPercentage: 0.92,
+                            categoryPercentage: 0.8
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: "bottom",
+                            labels: {
+                                boxWidth: 18,
+                                boxHeight: 14,
+                                color: "#1b2a44",
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: "index",
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 10,
+                            ticks: {
+                                stepSize: 2,
+                                color: "#3c4d63",
+                                font: {
+                                    size: 14
+                                }
+                            },
+                            grid: {
+                                color: "#d6e0ec",
+                                borderDash: [4, 4],
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: "#3c4d63",
+                                font: {
+                                    size: 15
+                                }
+                            },
+                            grid: {
+                                color: "#d6e0ec",
+                                borderDash: [4, 4],
+                                drawBorder: false
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    </script>
 
 </body>
 
