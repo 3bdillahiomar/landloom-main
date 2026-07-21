@@ -1,17 +1,17 @@
 # Somalia Municipality Risk Dashboard
 
-An interactive GeoDjango-based geospatial platform supporting municipal risk assessment, disaster preparedness, and evidence-based urban planning across Somalia.
+An interactive geospatial web platform supporting municipal risk assessment, disaster preparedness, and evidence-based urban planning across Somalia.
 
 <p align="center">
   <img src="static/app/images/dashboard_home.png" alt="Somalia Municipality Risk Dashboard" width="1000">
 </p>
 
-The dashboard integrates administrative boundaries, infrastructure, flood and drought hazards, internally displaced persons (IDPs), conflict events, rivers, and geospatial analytics through an interactive web GIS interface built with Django, GeoDjango, PostGIS, GeoServer, and Leaflet.
+The dashboard integrates administrative districts boundaries, infrastructure, flood and drought hazards, internally displaced persons (IDPs), conflict events, rivers, and geospatial analytics through an interactive web GIS interface built with Django, GeoDjango, PostGIS, GeoServer, and Leaflet.
 
-Somalia Municipality Risk Dashboard is a geospatial web platform for exploring municipality-level risk indicators in Somalia. It combines Django, GeoDjango, PostGIS, Django REST Framework, and Leaflet to serve interactive maps, analytics pages, and GIS-ready APIs.
+Somalia Municipality Risk Dashboard is a geospatial web platform for exploring municipality-level risk indicators in Somalia. It combines Django, GeoDjango, PostGIS, Django REST Framework, Leaflet and TurfJS to serve interactive maps, analytics pages, and GIS-ready APIs.
 
 
-## Project Overview
+## Overview
 
 - Interactive Leaflet-based map experience
 - Municipality and risk-focused dashboards
@@ -29,6 +29,10 @@ Somalia Municipality Risk Dashboard is a geospatial web platform for exploring m
 - django-filter
 - django-leaflet
 - HTML, CSS, JavaScript
+
+<p align="center">
+  <img src="static/app/images/technology_stack.png" alt="Dashboard Architecture" width="1000">
+</p>
 
 ## Repository Layout
 
