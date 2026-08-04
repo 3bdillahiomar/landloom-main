@@ -14,7 +14,7 @@ from django.db.models import Count, Sum
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 import requests
-
+import os
 
 # # IDP Settlement API View
 # class IDPSettlementAPIView(APIView):
@@ -345,7 +345,10 @@ class LogoutView(APIView):
 
 @require_GET
 def geoserver_proxy(request):
-    geoserver_url = "http://localhost:8080/geoserver/risk_dashboard/wms"
+    geoserver_url = os.getenv(
+    "GEOSERVER_INTERNAL_WMS_URL",
+    "http://localhost:8080/geoserver/risk_dashboard/wms",
+)
     try:
         response = requests.get(
             geoserver_url,

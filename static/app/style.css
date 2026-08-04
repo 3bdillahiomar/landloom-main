@@ -188,3 +188,79 @@ body {
 #idpTable th:nth-child(8) {
     text-align: right;
 }
+
+/* Development Notice Modal */
+.development-notice .modal-content {
+        border: 0;
+        border-radius: 18px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+    }
+
+    .development-notice .modal-header {
+        padding: 24px 28px;
+        color: white;
+        background: linear-gradient(135deg, #123f5a, #168b78);
+        border-bottom: 0;
+    }
+
+    .development-notice .modal-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+    }
+
+    .development-notice .modal-body {
+        padding: 28px;
+        color: #374151;
+        line-height: 1.7;
+    }
+
+    .development-notice .notice-status {
+        display: inline-block;
+        margin-bottom: 18px;
+        padding: 6px 12px;
+        color: #8a5400;
+        background-color: #fff3cd;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .development-notice .development-team {
+        margin-top: 22px;
+        padding: 16px;
+        background-color: #f4f7f8;
+        border-left: 4px solid #168b78;
+        border-radius: 8px;
+    }
+
+    .development-notice .lead-developer {
+        margin-bottom: 4px;
+        color: #123f5a;
+        font-weight: 700;
+    }
+
+    .development-notice .contributors {
+        margin: 0;
+        color: #5f6b76;
+        font-size: 0.92rem;
+    }
+
+    .development-notice .modal-footer {
+        padding: 18px 28px 24px;
+        border-top: 0;
+    }
+
+    .development-notice .continue-button {
+        padding: 10px 24px;
+        color: white;
+        background-color: #168b78;
+        border: 0;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .development-notice .continue-button:hover {
+        color: white;
+        background-color: #107363;
+    }

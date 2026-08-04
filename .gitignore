@@ -12,3 +12,11 @@ manager/data/
 
 # SCSS source files
 static/app/scss/
+
+# Production secrets and backups
+
+.env.production
+*.dump
+*.tar.gz
+backups/
+geoserver/data_dir/

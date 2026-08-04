@@ -96,6 +96,67 @@
 
 </head>
 <body>
+    <div
+    class="modal fade development-notice"
+    id="developmentNoticeModal"
+    tabindex="-1"
+    aria-labelledby="developmentNoticeTitle"
+    aria-hidden="true"
+    data-bs-backdrop="static"
+    data-bs-keyboard="false"
+>
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h2 class="modal-title" id="developmentNoticeTitle">
+                    Message from the Development Team
+                </h2>
+            </div>
+
+            <div class="modal-body">
+                <span class="notice-status">
+                    Under Active Development
+                </span>
+
+                <p>
+                    The Somalia Municipality Risk Dashboard is currently
+                    under active development. Data layers, indicators, and
+                    features may be added, updated, or removed during testing.
+                </p>
+
+                <p>
+                    This platform is intended for demonstration, internal
+                    review, and feedback. It should not yet be used as the
+                    sole basis for operational or investment decisions.
+                </p>
+
+                <div class="development-team">
+                    <p class="lead-developer">
+                        Omar Abdillahi, Geo-ICT Software Engineer
+                    </p>
+
+                    <p class="contributors">
+                        With contributions from Hamza Mahbub,
+                        Sarah Cramer Smith, and Benjamin Kushner.
+                    </p>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button
+                    type="button"
+                    class="btn continue-button"
+                    data-bs-dismiss="modal"
+                >
+                    Continue to Dashboard
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
     <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
         <div class="container-fluid">
 
@@ -629,6 +690,31 @@ $(document).ready(function () {
     });
 
 });
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const storageKey = "developmentNoticeAcknowledged";
+        const noticeElement = document.getElementById(
+            "developmentNoticeModal"
+        );
+
+        if (
+            noticeElement &&
+            !sessionStorage.getItem(storageKey)
+        ) {
+            const noticeModal = new bootstrap.Modal(noticeElement);
+            noticeModal.show();
+
+            noticeElement.addEventListener(
+                "hidden.bs.modal",
+                function () {
+                    sessionStorage.setItem(storageKey, "true");
+                },
+                { once: true }
+            );
+        }
+    });
 </script>
 
 </body>
