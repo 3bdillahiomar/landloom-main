@@ -24,6 +24,7 @@ services:
     environment:
       HOST: db
       PORT: 5432
+      GEOSERVER_INTERNAL_WMS_URL: http://geoserver:8080/geoserver/risk_dashboard/wms
     depends_on:
       db:
         condition: service_healthy
