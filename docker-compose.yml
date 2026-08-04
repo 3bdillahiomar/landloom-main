@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgis/postgis:18-3.6
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dashboard_network
+
+  web:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      HOST: db
+      PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - static_data:/app/staticfiles
+      - uploads_data:/app/uploads
+    networks:
+      - dashboard_network
+
+  geoserver:
+    image: docker.osgeo.org/geoserver:3.0.0
+    restart: unless-stopped
+    environment:
+      SKIP_DEMO_DATA: "true"
+      CORS_ENABLED: "true"
+      CORS_ALLOWED_ORIGINS: "https://somalia-municipality-risk-dashboard.com"
+      EXTRA_JAVA_OPTS: "-Xms512m -Xmx1400m"
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ../geoserver/data_dir:/opt/geoserver_data
+    networks:
+      - dashboard_network
+
+volumes:
+  postgres_data:
+  static_data:
+  uploads_data:
+
+networks:
+  dashboard_network:

@@ -16,9 +16,6 @@ import os
 
 
 
-GDAL_LIBRARY_PATH = "/opt/miniconda3/envs/climada_env/lib/libgdal.dylib"
-GEOS_LIBRARY_PATH = "/opt/miniconda3/envs/climada_env/lib/libgeos_c.dylib"
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(
@@ -26,6 +23,17 @@ env = environ.Env(
 )
 
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))  # reading .env file
+# Optional library paths for local environments.
+# Linux containers normally discover GDAL and GEOS automatically.
+gdal_library_path = env('GDAL_LIBRARY_PATH', default='')
+geos_library_path = env('GEOS_LIBRARY_PATH', default='')
+
+if gdal_library_path:
+    GDAL_LIBRARY_PATH = gdal_library_path
+
+if geos_library_path:
+    GEOS_LIBRARY_PATH = geos_library_path
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -38,6 +46,15 @@ SECRET_KEY=env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+
+
 
 
 # Application definition

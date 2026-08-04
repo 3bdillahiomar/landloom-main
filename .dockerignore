@@ -1,0 +1,13 @@
+.git
+.gitignore
+.env
+.env.*
+*.dump
+*.tar.gz
+backups/
+geoserver/
+__pycache__/
+*.pyc
+.DS_Store
+staticfiles/
+uploads/
