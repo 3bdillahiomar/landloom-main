@@ -113,8 +113,19 @@ var OpenTopoMap = L.tileLayer(
 
 // Section: WMS Layers
 
-// GeoServer WMS endpoint
-const geoserverUrl = "http://localhost:8080/geoserver/drought/wms";
+// GeoServer endpoints for local and production environments
+const isLocalDevelopment = ["localhost", "127.0.0.1"].includes(
+  window.location.hostname
+);
+
+const geoserverRoot = isLocalDevelopment
+  ? "http://localhost:8080/geoserver"
+  : "/geoserver";
+
+const geoserverUrl = `${geoserverRoot}/drought/wms`;
+
+const riskDashboardWmsUrl =
+  `${geoserverRoot}/risk_dashboard/wms`;
 
 
 // Drought WMS Layer
@@ -223,7 +234,7 @@ let droughtLayer = droughtLayers[2015];
 
 // IDP WMS Layer
 const idps = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_idp",
     format: "image/png",
@@ -302,7 +313,7 @@ map.on("click", function (e) {
 
 // Conflict WMS Layer
 const conflicts = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_conflictevent",
     format: "image/png",
@@ -401,7 +412,7 @@ map.getPane("buildingsPane").style.zIndex = 500;
 map.getPane("buildingsPane").style.pointerEvents = "none";
 
 const surpiiBuildings = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_surpii_building",
     pane: "buildingsPane",
@@ -421,7 +432,7 @@ map.getPane("roadsPane").style.zIndex = 450;
 map.getPane("roadsPane").style.pointerEvents = "none";
 
 const surpiiRoads = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_surpii_road",
     format: "image/png",
@@ -434,7 +445,7 @@ surpiiRoads.addTo(map);
 
 // River WMS Layer
 const rivers = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_river",
     format: "image/png",
@@ -524,7 +535,7 @@ fetch("/api/municipalities/")
 
   // Historical Flood Extent WMS Layer
 const floods = L.tileLayer.wms(
-  "http://localhost:8080/geoserver/risk_dashboard/wms",
+  riskDashboardWmsUrl,
   {
     layers: "risk_dashboard:manager_floodextent",
     format: "image/png",
