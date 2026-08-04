@@ -30,8 +30,8 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     volumes:
-      - static_data:/app/staticfiles
-      - uploads_data:/app/uploads
+      - ../staticfiles:/app/staticfiles
+      - ../uploads:/app/uploads
     networks:
       - dashboard_network
 
@@ -52,11 +52,8 @@ services:
       - ../geoserver/data_dir:/opt/geoserver_data
     networks:
       - dashboard_network
-
 volumes:
   postgres_data:
-  static_data:
-  uploads_data:
 
 networks:
   dashboard_network:
