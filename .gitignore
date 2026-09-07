@@ -20,3 +20,10 @@ static/app/scss/
 *.tar.gz
 backups/
 geoserver/data_dir/
+
+# Temporary files
+*.tmp
+*.log
+
+# Progress
+.progress/

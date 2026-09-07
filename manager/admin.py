@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import FloodExtent, ConflictEvent, IDP, River, SURPII_Road, SURPII_Building, Owner, LandParcel, LandMark, Road, Building, AdministrativeBoundary, District, Municipality
+from .models import FloodExtent, ConflictEvent, IDP, River, SURPII_Road, SURPII_Building, Owner, LandParcel, LandMark, Road, Building, AdministrativeBoundary, District, Municipality, MunicipalityExposureSummary
 from leaflet.admin import LeafletGeoAdmin
 
 class OwnerAdmin(LeafletGeoAdmin):
@@ -106,6 +106,22 @@ class FloodExtentAdmin(LeafletGeoAdmin):
     ordering = ("-created_at",)
 
 
+class MunicipalityExposureSummaryAdmin(admin.ModelAdmin):
+    list_display = (
+        "municipality",
+        "flood_buildings_count",
+        "flood_roads_length_m",
+        "flood_idp_individuals",
+        "conflict_events_recent",
+        "computed_at",
+    )
+    search_fields = ("municipality__name",)
+    ordering = ("municipality__name",)
+
+    def get_readonly_fields(self, request, obj=None):
+        return [field.name for field in self.model._meta.fields]
+
+
 admin.site.register(Owner, OwnerAdmin)
 admin.site.register(LandParcel, LandParcelAdmin)
 admin.site.register(LandMark, LandMarkAdmin)
@@ -119,3 +135,4 @@ admin.site.register(SURPII_Road, SURPIIRoadAdmin)
 admin.site.register(River, RiverAdmin)
 admin.site.register(IDP, IDPAdmin)
 admin.site.register(ConflictEvent, ConflictEventAdmin)
+admin.site.register(MunicipalityExposureSummary, MunicipalityExposureSummaryAdmin)

@@ -236,6 +236,9 @@ class SURPII_Building(models.Model):
 
     geom = geomodels.MultiPolygonField(srid=4326)
 
+    # Set by the compute_exposure command: intersects the historical flood extent.
+    flood_exposed = models.BooleanField(default=False, db_index=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -256,6 +259,9 @@ class SURPII_Road(models.Model):
     admin1Name = models.CharField(max_length=100)
 
     geom = geomodels.MultiLineStringField(srid=4326)
+
+    # Set by the compute_exposure command: intersects the historical flood extent.
+    flood_exposed = models.BooleanField(default=False, db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -313,6 +319,9 @@ class IDP(models.Model):
     populationCategory = models.CharField(max_length=50, blank=True, null=True)
 
     geom = geomodels.PointField(srid=4326)
+
+    # Set by the compute_exposure command: falls inside the historical flood extent.
+    flood_exposed = models.BooleanField(default=False, db_index=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -394,5 +403,39 @@ class FloodExtent(models.Model):
 
     def __str__(self):
         return "Historical Flood Extent"
-    
+
+
+# Stored flood-exposure summary per municipality
+# Feature-level layers are computed live; this table caches the headline numbers
+# (see manager/exposure.py and the compute_exposure management command).
+class MunicipalityExposureSummary(models.Model):
+    municipality = models.OneToOneField(
+        Municipality,
+        on_delete=models.CASCADE,
+        related_name="exposure_summary",
+    )
+
+    flood_buildings_count = models.IntegerField(default=0)
+    flood_buildings_area_sqm = models.FloatField(default=0)
+
+    flood_roads_count = models.IntegerField(default=0)
+    flood_roads_length_m = models.FloatField(default=0)
+
+    flood_idp_sites = models.IntegerField(default=0)
+    flood_idp_households = models.IntegerField(default=0)
+    flood_idp_individuals = models.IntegerField(default=0)
+
+    conflict_events_total = models.IntegerField(default=0)
+    conflict_events_recent = models.IntegerField(default=0)
+    conflict_fatalities_total = models.IntegerField(default=0)
+
+    computed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["municipality__name"]
+        verbose_name = "Municipality Exposure Summary"
+        verbose_name_plural = "Municipality Exposure Summaries"
+
+    def __str__(self):
+        return f"Exposure summary for {self.municipality.name}"
 

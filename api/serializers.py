@@ -1,5 +1,5 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from manager.models import FloodExtent, ConflictEvent, IDP, River, SURPII_Road, SURPII_Building, Municipality, Owner, LandParcel, LandMark, Road, Building, AdministrativeBoundary, District
+from manager.models import FloodExtent, ConflictEvent, IDP, River, SURPII_Road, SURPII_Building, Municipality, MunicipalityExposureSummary, Owner, LandParcel, LandMark, Road, Building, AdministrativeBoundary, District
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
@@ -193,3 +193,37 @@ class LoginSerializer(serializers.ModelSerializer):
         data['user'] = user
 
         return {'user': user}
+
+
+class MunicipalityExposureSummarySerializer(serializers.ModelSerializer):
+    municipality = serializers.CharField(
+        source="municipality.name",
+        read_only=True,
+    )
+    basis = serializers.SerializerMethodField()
+    stale = serializers.SerializerMethodField()
+
+    class Meta:
+        model = MunicipalityExposureSummary
+        fields = (
+            "municipality",
+            "basis",
+            "flood_buildings_count",
+            "flood_buildings_area_sqm",
+            "flood_roads_count",
+            "flood_roads_length_m",
+            "flood_idp_sites",
+            "flood_idp_households",
+            "flood_idp_individuals",
+            "conflict_events_total",
+            "conflict_events_recent",
+            "conflict_fatalities_total",
+            "computed_at",
+            "stale",
+        )
+
+    def get_basis(self, obj):
+        return "maximum observed historical flood extent"
+
+    def get_stale(self, obj):
+        return False

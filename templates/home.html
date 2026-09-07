@@ -35,6 +35,12 @@
         href="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.css"
     />
 
+    <!-- Leaflet Grouped Layer Control CSS (vendored) -->
+    <link
+        rel="stylesheet"
+        href="{% static 'app/leaflet.groupedlayercontrol.min.css' %}"
+    />
+
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.dataTables.min.css">
     
@@ -90,7 +96,257 @@
             border: 1px solid #ffffff;
             flex-shrink: 0;
         }
-                
+
+        /* Accordion-style grouped layer control */
+        .leaflet-control-layers-group {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 6px;
+            padding: 6px 8px;
+            background: #ffffff;
+        }
+        .leaflet-control-layers-group:last-child {
+            margin-bottom: 0;
+        }
+        .leaflet-control-layers-group-name {
+            cursor: pointer;
+            user-select: none;
+            font-weight: 700;
+        }
+        .leaflet-control-layers-group-name::before {
+            content: "\25BE";
+            display: inline-block;
+            width: 1em;
+            margin-right: 2px;
+            transition: transform 0.15s ease;
+        }
+        .leaflet-control-layers-group.lgc-collapsed
+            .leaflet-control-layers-group-name::before {
+            transform: rotate(-90deg);
+        }
+        .leaflet-control-layers-group.lgc-collapsed
+            label:not(.leaflet-control-layers-group-label) {
+            display: none;
+        }
+
+        /* ---- Accordion filter panel ---- */
+        .fp {
+            border: 1px solid var(--bs-border-color, #dee2e6);
+            border-radius: 0.5rem;
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .fp-search {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+        }
+
+        .fp-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+        .fp-chips:not(:empty) {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--bs-border-color, #dee2e6);
+        }
+
+        .fp-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.15rem 0.25rem 0.15rem 0.55rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            color: #2e7d32;
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            border-radius: 999px;
+        }
+        .fp-chip-x {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.15rem;
+            height: 1.15rem;
+            padding: 0;
+            font-size: 0.95rem;
+            line-height: 1;
+            color: #2e7d32;
+            background: transparent;
+            border: 0;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+        .fp-chip-x:hover {
+            background: #c8e6c9;
+        }
+        .fp-chip-x:focus-visible {
+            outline: 2px solid #2e7d32;
+            outline-offset: 1px;
+        }
+
+        .fp-section + .fp-section {
+            border-top: 1px solid var(--bs-border-color, #dee2e6);
+        }
+
+        .fp-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #495057;
+            text-align: left;
+            background: #ffffff;
+            border: 0;
+            cursor: pointer;
+        }
+        .fp-header:hover {
+            background: var(--bs-tertiary-bg, #f8f9fa);
+        }
+        .fp-header:focus-visible {
+            outline: 2px solid var(--bs-primary, #0d6efd);
+            outline-offset: -2px;
+        }
+
+        .fp-count {
+            color: var(--bs-secondary-color, #6c757d);
+            font-weight: 400;
+        }
+
+        .fp-icon {
+            flex: 0 0 auto;
+            width: 1rem;
+            text-align: center;
+            color: var(--bs-secondary-color, #6c757d);
+            font-weight: 600;
+        }
+        .fp-icon::before {
+            content: "+";
+        }
+        .fp-header[aria-expanded="true"] .fp-icon::before {
+            content: "\2212"; /* minus sign */
+        }
+
+        .fp-body {
+            padding: 0.25rem 0.75rem 0.6rem;
+        }
+
+        .fp-option {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.4rem 0.25rem;
+            font-size: 0.9rem;
+            color: var(--bs-body-color, #212529);
+            cursor: pointer;
+            border-radius: 0.25rem;
+        }
+        .fp-option:hover {
+            background: var(--bs-tertiary-bg, #f8f9fa);
+        }
+        .fp-option.fp-hidden {
+            display: none;
+        }
+
+        .fp-more {
+            display: block;
+            width: 100%;
+            margin-top: 0.15rem;
+            padding: 0.35rem 0.25rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--bs-primary, #0d6efd);
+            text-align: left;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+        }
+        .fp-more:hover {
+            text-decoration: underline;
+        }
+        .fp-more:focus-visible {
+            outline: 2px solid var(--bs-primary, #0d6efd);
+            outline-offset: 2px;
+        }
+        .fp-option input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .fp-box {
+            flex: 0 0 auto;
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--bs-border-color, #adb5bd);
+            border-radius: 0.25rem;
+            background: #ffffff;
+            position: relative;
+        }
+        .fp-option input:checked + .fp-box {
+            background: #2e7d32;
+            border-color: #2e7d32;
+        }
+        .fp-option input:checked + .fp-box::after {
+            content: "";
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 5px;
+            height: 10px;
+            border: solid #ffffff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .fp-option input:focus-visible + .fp-box {
+            outline: 2px solid var(--bs-primary, #0d6efd);
+            outline-offset: 2px;
+        }
+        .fp-option input:disabled + .fp-box {
+            background: var(--bs-secondary-bg, #e9ecef);
+        }
+        .fp-option:has(input:disabled) {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .fp-native {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        @media (max-width: 576px) {
+            .fp-header {
+                min-height: 44px;
+                font-size: 1rem;
+            }
+            .fp-option {
+                min-height: 44px;
+                font-size: 0.95rem;
+            }
+            .fp-chip {
+                font-size: 0.85rem;
+            }
+            .fp-chip-x {
+                width: 1.4rem;
+                height: 1.4rem;
+            }
+        }
+
     </style>
 
 
@@ -244,113 +500,123 @@
 
             <br>
 
-            <!-- Municipality Selection -->
-            <div class="row">
-                <select id="municipalityList" class="form-select">
-                    <option value="">Select Municipality</option>
+            <!-- Accordion filter panel (progressive enhancement over the 4 <select>s;
+                 app.js hides the selects and builds the accordion UI from them). -->
+            <div id="filterPanel" class="fp">
 
-                    {% for municipality in municipalities %}
-                        {% if municipality.name not in "Afgooye,Ceelasha Biyaha,Lafoole" %}
-                            <option value="{{ municipality.name }}">{{ municipality.name }}</option>
-                        {% endif %}
-                    {% empty %}
-                        <option value="">No Municipalities Available</option>
-                    {% endfor %}
-                </select>
+                <div class="fp-search">
+                    <input
+                        type="search"
+                        id="fpSearch"
+                        class="form-control form-control-sm"
+                        placeholder="Search municipality, district, region…"
+                        aria-label="Search municipality, district and region options"
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="fp-chips" id="fpChips" aria-live="polite"></div>
+
+                <div class="fp-sections" id="fpSections">
+
+                    <!-- Municipality Selection -->
+                    <select id="municipalityList" class="form-select">
+                        <option value="">Select Municipality</option>
+
+                        {% for municipality in municipalities %}
+                            {% if municipality.name not in "Afgooye,Ceelasha Biyaha,Lafoole" %}
+                                <option value="{{ municipality.name }}">{{ municipality.name }}</option>
+                            {% endif %}
+                        {% empty %}
+                            <option value="">No Municipalities Available</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- District Boundary Selection -->
+                    <select id="districtBoundaryList" class="form-select">
+                        <option value="">Select District</option>
+
+                        {% for district in district_boundaries %}
+                            <option value="{{ district.name }}">{{ district.name }}</option>
+                        {% empty %}
+                            <option value="">No Districts Available</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Administrative Boundary Selection -->
+                    <select id="administrativeBoundaryList" class="form-select">
+                        <option value="">Select Region</option>
+
+                        {% for admin in admin_boundaries %}
+                            <option value="{{ admin.name }}">{{ admin.name }}</option>
+                        {% empty %}
+                            <option value="">No Regions Available</option>
+                        {% endfor %}
+                    </select>
+
+                    <!-- Drought Year Selection -->
+                    <select id="droughtYearList" class="form-select">
+                        <option value="">Select Drought Year</option>
+                        <option value="2015">Drought Year: 2015</option>
+                        <option value="2016">Drought Year: 2016</option>
+                        <option value="2017">Drought Year: 2017</option>
+                        <option value="2018">Drought Year: 2018</option>
+                        <option value="2019">Drought Year: 2019</option>
+                        <option value="2020">Drought Year: 2020</option>
+                        <option value="2021">Drought Year: 2021</option>
+                        <option value="2022">Drought Year: 2022</option>
+                        <option value="2023">Drought Year: 2023</option>
+                        <option value="2024">Drought Year: 2024</option>
+                        <option value="2025">Drought Year: 2025</option>
+                        <option value="">No drought data available</option>
+                    </select>
+
+                </div>
             </div>
-            <!-- District Boundary Selection -->
-            <div class="row">
-                <select id="districtBoundaryList" class="form-select">
-                    <option value="">Select District</option>
 
-                    {% for district in district_boundaries %}
-                        <option value="{{ district.name }}">{{ district.name }}</option>
-                    {% empty %}
-                        <option value="">No Districts Available</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Administrative Boundary Selection -->
-            <div class="row">
-                <select id="administrativeBoundaryList" class="form-select">
-                    <option value="">Select Region</option>
-
-                    {% for admin in admin_boundaries %}
-                        <option value="{{ admin.name }}">{{ admin.name }}</option>
-                    {% empty %}
-                        <option value="">No Regions Available</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <!-- Drought Year Selection -->
-            <div class="row">
-                <select id="droughtYearList" class="form-select">
-                    <option value="">Select Drought Year</option>
-                    <option value="2015">Drought Year: 2015</option>
-                    <option value="2016">Drought Year: 2016</option>
-                    <option value="2017">Drought Year: 2017</option>
-                    <option value="2018">Drought Year: 2018</option>
-                    <option value="2019">Drought Year: 2019</option>
-                    <option value="2020">Drought Year: 2020</option>
-                    <option value="2021">Drought Year: 2021</option>
-                    <option value="2022">Drought Year: 2022</option>
-                    <option value="2023">Drought Year: 2023</option>
-                    <option value="2024">Drought Year: 2024</option>
-                    <option value="2025">Drought Year: 2025</option>
-                    <option value="">No drought data available</option>
-                </select>
-            </div>
-            
-            <!-- Conflict Events Chart -->
-            <h4>Insurgent Event Records (2020-2026)</h4>
-            <canvas id="conflictChart" width="700" height="500"></canvas>
-            <hr>
-            
-            <!-- IDP Settlements Chart -->
-            <div class="col-lg-12">
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">IDP Individuals by Municipality</h5>
+            <!-- Flood-exposure decision panel -->
+            <div class="card shadow-sm my-3" id="exposureSummary">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        Flood-exposed in
+                        <span data-kpi="city">Belet Weyne</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center g-2">
+                        <div class="col-3">
+                            <div class="fs-5 fw-bold" data-kpi="buildings">–</div>
+                            <div class="small text-secondary">Buildings</div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fs-5 fw-bold" data-kpi="roads">–</div>
+                            <div class="small text-secondary">Roads (km)</div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fs-5 fw-bold" data-kpi="idps">–</div>
+                            <div class="small text-secondary">IDP people</div>
+                        </div>
+                        <div class="col-3">
+                            <div class="fs-5 fw-bold" data-kpi="conflict">–</div>
+                            <div class="small text-secondary">Conflict 3y</div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <canvas id="idpMunicipalityChart"></canvas>
+
+                    <p class="small text-secondary mt-3 mb-2" data-kpi="note"></p>
+
+                    <div class="small">
+                        <span class="text-secondary">Download —</span>
+                        Buildings:
+                        <a href="#" data-exposure-download="buildings" data-exposure-format="json">GeoJSON</a>/<a href="#" data-exposure-download="buildings" data-exposure-format="csv">CSV</a>
+                        · Roads:
+                        <a href="#" data-exposure-download="roads" data-exposure-format="json">GeoJSON</a>/<a href="#" data-exposure-download="roads" data-exposure-format="csv">CSV</a>
+                        · IDP sites:
+                        <a href="#" data-exposure-download="idps" data-exposure-format="json">GeoJSON</a>/<a href="#" data-exposure-download="idps" data-exposure-format="csv">CSV</a>
                     </div>
                 </div>
             </div>
-            
+
         </div>
-        
-<div class="card shadow-sm mt-4">
-    <div class="card-header">
-        <h4 class="mb-0">Municipality IDP Settlement Inventory</h4>
-    </div>
-
-    <div class="card-body">
-
-        <table
-            id="idpTable"
-            class="table table-striped table-hover"
-            style="width:100%">
-
-            <thead>
-                <tr>
-                    <th>Settlement</th>
-                    <th>DTM ID</th>
-                    <th>Municipality</th>
-                    <th>Region</th>
-                    <th>Category</th>
-                    <th>Class</th>
-                    <th>Households</th>
-                    <th>Individuals</th>
-                </tr>
-            </thead>
-
-        </table>
-
-    </div>
-</div>
 
 <!-- Municipality Partners -->
 <section class="border-top py-5 bg-white">
@@ -482,215 +748,18 @@
     <!-- Leaflet Search Plugin -->
     <script src="{% static 'app/leaflet-search.js' %}"></script>
 
+    <!-- Leaflet Grouped Layer Control (vendored) -->
+    <script src="{% static 'app/leaflet.groupedlayercontrol.min.js' %}"></script>
+
     <!-- Leaflet Measurement Plugin
     <script src="https://unpkg.com/leaflet-measure@1.1.0/dist/leaflet-measure.js"></script> -->
 
-    <!-- Your application -->
-    <script src="{% static 'app/app.js' %}"></script>
+    <!-- Your application (bump ?v= when app.js changes to bust the browser cache) -->
+    <script src="{% static 'app/app.js' %}?v=20260907-10"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.datatables.net/2.3.8/js/dataTables.min.js"></script>
             
 
-
-<!-- Conflict Events by Year + IDP Individuals by Municipality -->
-<script>
-fetch("/api/dashboard-summary/")
-    .then(response => response.json())
-    .then(data => {
-
-        // ===============================
-        // Conflict Events by Year
-        // ===============================
-        const yearlyEvents = data.events_by_year;
-
-        const conflictCtx = document
-            .getElementById("conflictChart")
-            .getContext("2d");
-
-        new Chart(conflictCtx, {
-            type: "bar",
-            data: {
-                labels: yearlyEvents.map(item => item.year),
-                datasets: [{
-                    label: "Conflict Events",
-                    data: yearlyEvents.map(item => item.events),
-                    backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(255, 159, 64, 0.2)',
-                            'rgba(255, 205, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(201, 203, 207, 0.2)'
-                            ],
-                    borderColor: [
-                            'rgb(255, 99, 132)',
-                            'rgb(255, 159, 64)',
-                            'rgb(255, 205, 86)',
-                            'rgb(75, 192, 192)',
-                            'rgb(54, 162, 235)',
-                            'rgb(153, 102, 255)',
-                            'rgb(201, 203, 207)'
-                            ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: "Conflict Events by Year"
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            precision: 0
-                        }
-                    }
-                }
-            }
-        });
-
-
-        // ===============================
-        // IDP Individuals by Municipality
-        // ===============================
-        const idpMunicipalities = data.idps_by_municipality;
-
-        // Sort descending by individuals
-        idpMunicipalities.sort((a, b) => b.individuals - a.individuals);
-
-        const idpCtx = document
-            .getElementById("idpMunicipalityChart")
-            .getContext("2d");
-
-        new Chart(idpCtx, {
-            type: "bar",
-            data: {
-                labels: idpMunicipalities.map(item => item.name),
-                datasets: [{
-                    label: "IDP Individuals",
-                    data: idpMunicipalities.map(item => item.individuals),
-                    backgroundColor: [
-                            'rgba(255, 99, 132, 0.2)',
-                            'rgba(255, 159, 64, 0.2)',
-                            'rgba(255, 205, 86, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                            'rgba(201, 203, 207, 0.2)'
-                            ],
-                    borderColor: [
-                            'rgb(255, 99, 132)',
-                            'rgb(255, 159, 64)',
-                            'rgb(255, 205, 86)',
-                            'rgb(75, 192, 192)',
-                            'rgb(54, 162, 235)',
-                            'rgb(153, 102, 255)',
-                            'rgb(201, 203, 207)'
-                            ],
-
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: "y",
-                responsive: true,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: "IDP Individuals by Municipality"
-                    }
-                },
-                scales: {
-                    x: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-    })
-    .catch(error => {
-        console.error("Error loading dashboard summary:", error);
-    });
-</script>
-
-
-<!-- Script for data tables -->
-<script>
-$(document).ready(function () {
-
-    $('#idpTable').DataTable({
-
-        ajax: {
-            url: "/api/idps/",
-            dataSrc: "features"
-        },
-
-        autoWidth: false,
-
-        responsive: true,
-
-        pageLength: 10,
-
-        order: [
-            [2, "asc"],   // Municipality
-            [0, "asc"]    // Settlement
-        ],
-
-        columns: [
-            {
-                data: "properties.settlementName",
-                width: "15%"
-            },
-            {
-                data: "properties.settlementDTMId",
-                width: "12%"
-            },
-            {
-                data: "properties.urbanName",
-                width: "10%"
-            },
-            {
-                data: "properties.admin1Name",
-                width: "10%"
-            },
-            {
-                data: "properties.populationCategory",
-                width: "8%"
-            },
-            {
-                data: "properties.settlementClass",
-                width: "25%"
-            },
-            {
-                data: "properties.idpHouseholds",
-                width: "10%",
-                className: "text-end",
-                render: $.fn.dataTable.render.number(",", ".", 0)
-            },
-            {
-                data: "properties.idpIndividuals",
-                width: "10%",
-                className: "text-end",
-                render: $.fn.dataTable.render.number(",", ".", 0)
-            }
-        ]
-
-    });
-
-});
-</script>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
