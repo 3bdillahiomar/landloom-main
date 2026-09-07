@@ -1,10 +1,21 @@
 from django.shortcuts import render
 
-from .serializers import ConflictEventSerializer,FloodExtentSerializer, IDPSerializer, RiverSerializer, SURPIIRoadSerializer, SURPIIBuildingSerializer, LandParcelSerializer, LandParcelListSerializer, MunicipalitySerializer, OwnerSerializer, LandMarkSerializer, RoadSerializer, BuildingSerializer, AdministrativeBoundarySerializer, DistrictSerializer, RegistrationSerializer, LoginSerializer
+from .serializers import ConflictEventSerializer,FloodExtentSerializer, IDPSerializer, RiverSerializer, SURPIIRoadSerializer, SURPIIBuildingSerializer, LandParcelSerializer, LandParcelListSerializer, MunicipalitySerializer, MunicipalityExposureSummarySerializer, OwnerSerializer, LandMarkSerializer, RoadSerializer, BuildingSerializer, AdministrativeBoundarySerializer, DistrictSerializer, RegistrationSerializer, LoginSerializer
 from rest_framework import generics
-from manager.models import FloodExtent ,ConflictEvent, IDP, River, SURPII_Road ,SURPII_Building, LandParcel, Municipality, Owner, LandMark, Road, Building, AdministrativeBoundary, District
+from manager.models import FloodExtent ,ConflictEvent, IDP, River, SURPII_Road ,SURPII_Building, LandParcel, Municipality, MunicipalityExposureSummary, Owner, LandMark, Road, Building, AdministrativeBoundary, District
+from manager.exposure import (
+    BASIS,
+    SUMMARY_FIELDS,
+    exposed_buildings_qs,
+    exposed_idps_qs,
+    exposed_roads_qs,
+    municipality_conflicts_qs,
+    resolve_municipality,
+)
+from .renderers import ExposureCSVRenderer
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.renderers import JSONRenderer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -362,5 +373,124 @@ def geoserver_proxy(request):
         )
     except requests.RequestException as exc:
         return JsonResponse({"error": str(exc)}, status=500)
-    
-    
+
+
+# Flood-exposure decision datasets. Exposure is precomputed onto the
+# flood_exposed flag by `manage.py compute_exposure`; these views just filter it.
+# Buildings can be tens of thousands of features for a flood-prone city, so the
+# map draws them as a GeoServer WMS layer (CQL flood_exposed=true) -- this JSON
+# endpoint still serves them for the download links.
+DEFAULT_EXPOSURE_MUNICIPALITY = "Belet Weyne"
+
+EXPOSURE_LAYERS = {
+    "buildings": (exposed_buildings_qs, SURPIIBuildingSerializer, SURPII_Building),
+    "roads": (exposed_roads_qs, SURPIIRoadSerializer, SURPII_Road),
+    "idps": (exposed_idps_qs, IDPSerializer, IDP),
+    "conflicts": (municipality_conflicts_qs, ConflictEventSerializer, ConflictEvent),
+}
+
+
+class MunicipalityExposureFeaturesView(generics.ListAPIView):
+    """Flood-exposed features for one municipality, as GeoJSON or CSV.
+
+    Query params:
+      municipality  municipality name (default "Belet Weyne")
+      layer         buildings | roads | idps | conflicts (default buildings)
+      format=csv    CSV instead of GeoJSON
+      download=1    add a Content-Disposition attachment header
+    """
+
+    pagination_class = None
+    renderer_classes = [JSONRenderer, ExposureCSVRenderer]
+
+    def _layer_key(self):
+        return self.request.query_params.get("layer", "buildings").lower()
+
+    def _municipality_name(self):
+        return self.request.query_params.get(
+            "municipality", DEFAULT_EXPOSURE_MUNICIPALITY
+        )
+
+    def get_serializer_class(self):
+        config = EXPOSURE_LAYERS.get(self._layer_key(), EXPOSURE_LAYERS["buildings"])
+        return config[1]
+
+    def get_queryset(self):
+        config = EXPOSURE_LAYERS.get(self._layer_key())
+
+        if config is None:
+            return SURPII_Building.objects.none()
+
+        qs_builder, _serializer, model = config
+        municipality = resolve_municipality(self._municipality_name())
+
+        if municipality is None:
+            return model.objects.none()
+
+        return qs_builder(municipality)
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+
+        download = request.query_params.get("download", "").lower() in (
+            "1", "true", "yes",
+        )
+        if download:
+            renderer = getattr(response, "accepted_renderer", None)
+            extension = (
+                "csv"
+                if renderer is not None and getattr(renderer, "format", "") == "csv"
+                else "geojson"
+            )
+            municipality_slug = self._municipality_name().replace(" ", "")
+            filename = (
+                f"{municipality_slug}_Flood-exposed_{self._layer_key()}.{extension}"
+            )
+            response["Content-Disposition"] = (
+                f'attachment; filename="{filename}"'
+            )
+
+        return response
+
+
+class MunicipalityExposureSummaryView(APIView):
+    """Stored flood-exposure headline numbers for one municipality."""
+
+    def get(self, request):
+        name = request.query_params.get(
+            "municipality", DEFAULT_EXPOSURE_MUNICIPALITY
+        )
+        municipality = resolve_municipality(name)
+
+        if municipality is None:
+            return Response(
+                {
+                    "municipality": name,
+                    "basis": BASIS,
+                    "found": False,
+                    "detail": "Unknown municipality.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        summary = MunicipalityExposureSummary.objects.filter(
+            municipality=municipality
+        ).first()
+
+        if summary is None:
+            payload = {field: 0 for field in SUMMARY_FIELDS}
+            payload.update(
+                {
+                    "municipality": municipality.name,
+                    "basis": BASIS,
+                    "stale": True,
+                    "computed_at": None,
+                    "detail": (
+                        "No stored summary yet. Run: python manage.py "
+                        'compute_exposure --municipality "%s"' % municipality.name
+                    ),
+                }
+            )
+            return Response(payload)
+
+        return Response(MunicipalityExposureSummarySerializer(summary).data)

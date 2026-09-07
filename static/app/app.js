@@ -394,7 +394,7 @@ map.on("click", function (e) {
           <strong>District:</strong> ${props.admin2 || props.admin2Name || "N/A"}<br>
           <strong>Date:</strong> ${props.event_date || props.eventDate || "N/A"}<br>
           <strong>Fatalities:</strong> ${props.fatalities ?? "N/A"}<br>
-          <strong>Actor 1:</strong> ${props.actor1 || "N/A"}<br>
+          <strong>Actor 1:</strong> ${props.actor1 || "N/A"}<br >
           <strong>Actor 2:</strong> ${props.actor2 || "N/A"}
         `)
         .openOn(map);
@@ -455,6 +455,73 @@ const rivers = L.tileLayer.wms(
   },
 );
 rivers.addTo(map);
+
+
+// Section: Flood-exposure decision layers (municipality-filtered) -------------
+// Buildings / roads / IDP sites that intersect the historical flood extent, for
+// the municipality picked in the sidebar dropdown. Exposure is precomputed onto
+// a flood_exposed flag (manage.py compute_exposure). Buildings can be tens of
+// thousands of footprints, so they come from GeoServer as a filtered WMS layer;
+// roads and IDP sites come from /api/exposure/ as GeoJSON.
+// Basis: maximum observed flood extent (binary, no return period).
+const EXPOSURE_DEFAULT_MUNICIPALITY = "Belet Weyne";
+
+function exposureBuildingsFilter(municipalityName) {
+  const safe = String(municipalityName).replace(/'/g, "''");
+  return `flood_exposed = true AND UrbanName = '${safe}'`;
+}
+
+const floodedBuildings = L.tileLayer.wms(riskDashboardWmsUrl, {
+  layers: "risk_dashboard:manager_surpii_building",
+  cql_filter: exposureBuildingsFilter(EXPOSURE_DEFAULT_MUNICIPALITY),
+  format: "image/png",
+  transparent: true,
+  version: "1.1.1",
+  pane: "buildingsPane",
+  attribution: "GeoServer",
+});
+
+// Flood-exposed roads mirror the OSM Roads SLD (#b6b3b3) so they read as the same
+// family; flood-exposed IDP sites use a distinct orange (#e6b031) so they stand
+// out against the green "IDP Settlements" base layer.
+const floodedRoads = L.geoJSON(null, {
+  style: {
+    color: "#b6b3b3",
+    weight: 1.2,
+    opacity: 1,
+    lineCap: "round",
+    lineJoin: "round",
+  },
+  onEachFeature(feature, layer) {
+    const props = feature.properties || {};
+    layer.bindPopup(`
+      <strong>Flood-exposed road</strong><br>
+      Class: ${props.highway || "N/A"}<br>
+      District: ${props.admin2Name || "N/A"}
+    `);
+  },
+});
+
+const floodedIdps = L.geoJSON(null, {
+  pointToLayer(feature, latlng) {
+    return L.circleMarker(latlng, {
+      radius: 5,
+      color: "#232323",
+      weight: 1,
+      fillColor: "#e6b031",
+      fillOpacity: 1,
+    });
+  },
+  onEachFeature(feature, layer) {
+    const props = feature.properties || {};
+    layer.bindPopup(`
+      <strong>Flood-exposed IDP settlement</strong><br>
+      Settlement: ${props.settlementName || "N/A"}<br>
+      Individuals: ${props.idpIndividuals ?? "N/A"}<br>
+      Households: ${props.idpHouseholds ?? "N/A"}
+    `);
+  },
+});
 
 
 // [Municipalities] Fetch municipalities polygon data
@@ -771,6 +838,9 @@ var overlays = {
   InsurgencyBuffer: conflictBufferLayer,
   "Historical Flood Extent": floods,
   "Annual Drought Severity": droughtLayer,
+  "Flood-exposed Buildings": floodedBuildings,
+  "Flood-exposed Roads": floodedRoads,
+  "Flood-exposed IDP Sites": floodedIdps,
   // Buildings: buildings,
   // Roads: roads,
   // Landmarks: landmarks,
@@ -778,7 +848,98 @@ var overlays = {
   Districts: districtBoundaries,
 };
 
-var layerControl = L.control.layers(baseMaps, overlays).addTo(map);
+// Grouped view for the layer control: general map layers, then one group per
+// municipality holding its flood-exposure layers. The flat `overlays` object
+// above still drives the legend and the drought-year swap. The group name is
+// retargeted at runtime by setExposureGroupLabel() when the city changes.
+const EXPOSURE_GROUP_SUFFIX = " — hazard-exposed";
+const EXPOSURE_GROUP = EXPOSURE_DEFAULT_MUNICIPALITY + EXPOSURE_GROUP_SUFFIX;
+
+var groupedOverlays = {
+  "Map layers": {
+    Municipalities: municipalities,
+    "Google Buildings": surpiiBuildings,
+    "OSM Roads": surpiiRoads,
+    Rivers: rivers,
+    "IDP Settlements": idps,
+    Insurgency: conflicts,
+    InsurgencyBuffer: conflictBufferLayer,
+    "Historical Flood Extent": floods,
+    "Annual Drought Severity": droughtLayer,
+    Regions: adminBoundaries,
+    Districts: districtBoundaries,
+  },
+};
+groupedOverlays[EXPOSURE_GROUP] = {
+  "Flood-exposed Buildings": floodedBuildings,
+  "Flood-exposed Roads": floodedRoads,
+  "Flood-exposed IDP Sites": floodedIdps,
+};
+
+var layerControl = L.control.groupedLayers(baseMaps, groupedOverlays, {
+  groupCheckboxes: true,
+});
+
+// Turn each group into a collapsible accordion card. leaflet-groupedlayercontrol
+// has no such feature, so we style the groups (see home.html) and add the toggle
+// here. Per-city hazard groups share one collapse key ("__hazard__") so the state
+// survives the city rename; hazard groups start collapsed, the rest start open.
+const groupCollapseState = {};
+
+function groupCollapseKey(name) {
+  return name.endsWith(EXPOSURE_GROUP_SUFFIX) ? "__hazard__" : name;
+}
+
+// Re-apply the stored collapsed/expanded state after each DOM rebuild.
+function enhanceLayerGroups(control) {
+  const container = control && control._container;
+  if (!container) {
+    return;
+  }
+
+  container
+    .querySelectorAll(".leaflet-control-layers-group")
+    .forEach(function (group) {
+      const nameEl = group.querySelector(".leaflet-control-layers-group-name");
+      if (!nameEl) {
+        return;
+      }
+      const key = groupCollapseKey(nameEl.textContent.trim());
+      if (groupCollapseState[key] === undefined) {
+        groupCollapseState[key] = key === "__hazard__";
+      }
+      group.classList.toggle("lgc-collapsed", groupCollapseState[key]);
+    });
+}
+
+(function () {
+  const originalUpdate = layerControl._update;
+  layerControl._update = function () {
+    originalUpdate.call(this);
+    enhanceLayerGroups(this);
+  };
+})();
+
+layerControl.addTo(map);
+
+// One delegated toggle handler on the control container (which survives the
+// group DOM rebuilds); clicking a group name expands/collapses that group.
+layerControl._container.addEventListener("click", function (event) {
+  const nameEl =
+    event.target.closest &&
+    event.target.closest(".leaflet-control-layers-group-name");
+  if (!nameEl || !layerControl._container.contains(nameEl)) {
+    return;
+  }
+  // don't let the click toggle the group's select-all checkbox
+  event.preventDefault();
+  event.stopPropagation();
+
+  const group = nameEl.closest(".leaflet-control-layers-group");
+  const key = groupCollapseKey(nameEl.textContent.trim());
+  groupCollapseState[key] = !group.classList.contains("lgc-collapsed");
+  group.classList.toggle("lgc-collapsed", groupCollapseState[key]);
+});
 
 // Keep drought layer above the basemap
 map.on("baselayerchange", function () {
@@ -936,6 +1097,18 @@ function updateLegend(div) {
     "Annual Drought Severity": {
       type: "raster",
       color: "raster",
+    },
+    "Flood-exposed Buildings": {
+      type: "box",
+      color: "#ff0000",
+    },
+    "Flood-exposed Roads": {
+      type: "line",
+      color: "#b6b3b3",
+    },
+    "Flood-exposed IDP Sites": {
+      type: "point",
+      color: "#e6b031",
     },
     Regions: {
       type: "line",
@@ -1164,6 +1337,437 @@ document
         updateLegend(legend._div);
 
     });
+
+
+// Section: Flood-exposure loader --------------------------------------------
+// Refreshes the derived layers, the KPI card and the download links whenever
+// the municipality selection changes. Default city: Beledweyne.
+
+function setExposureDownloadLinks(municipalityName) {
+  document.querySelectorAll("[data-exposure-download]").forEach(function (link) {
+    const layer = link.getAttribute("data-exposure-download");
+    const format = link.getAttribute("data-exposure-format") || "json";
+
+    const params = new URLSearchParams({
+      municipality: municipalityName,
+      layer: layer,
+      download: "1",
+    });
+
+    if (format === "csv") {
+      params.set("format", "csv");
+    }
+
+    link.href = "/api/exposure/?" + params.toString();
+  });
+}
+
+function renderExposureSummary(summary) {
+  const box = document.getElementById("exposureSummary");
+  if (!box || !summary) {
+    return;
+  }
+
+  const asInt = function (value) {
+    return Number(value || 0).toLocaleString(undefined, {
+      maximumFractionDigits: 0,
+    });
+  };
+
+  const setKpi = function (key, value) {
+    const el = box.querySelector('[data-kpi="' + key + '"]');
+    if (el) {
+      el.textContent = value;
+    }
+  };
+
+  const roadsKm = (summary.flood_roads_length_m || 0) / 1000;
+
+  // Use the server's canonical name (handles alias input like "Beledweyne").
+  if (summary.municipality) {
+    setExposureGroupLabel(summary.municipality);
+  }
+
+  setKpi("city", summary.municipality || "");
+  setKpi("buildings", asInt(summary.flood_buildings_count));
+  setKpi(
+    "roads",
+    roadsKm.toLocaleString(undefined, { maximumFractionDigits: 1 })
+  );
+  setKpi("idps", asInt(summary.flood_idp_individuals));
+  setKpi("conflict", asInt(summary.conflict_events_recent));
+
+  const note = box.querySelector('[data-kpi="note"]');
+  if (note) {
+    note.textContent = summary.stale
+      ? "Summary not yet computed — run: python manage.py compute_exposure"
+      : "Basis: " + (summary.basis || "historical flood extent") + ".";
+  }
+}
+
+function loadExposureGeoJson(municipalityName, layerKey, leafletLayer) {
+  return fetch(
+    "/api/exposure/?municipality=" +
+      encodeURIComponent(municipalityName) +
+      "&layer=" +
+      layerKey
+  )
+    .then(function (response) {
+      return response.ok ? response.json() : null;
+    })
+    .then(function (data) {
+      leafletLayer.clearLayers();
+      if (data && data.features && data.features.length) {
+        leafletLayer.addData(data);
+      }
+    })
+    .catch(function (error) {
+      console.error("Exposure layer " + layerKey + " failed:", error);
+      leafletLayer.clearLayers();
+    });
+}
+
+// Rename the layer-control group so it always reads "<selected city> — hazard-exposed".
+// leaflet-groupedlayercontrol has no public rename API: each entry in _layers carries
+// its own `group` object, so we retarget the three flood-exposure entries and re-render.
+// _update() rebuilds from map state, so checkbox and collapsed/expanded state survive.
+function setExposureGroupLabel(municipalityName) {
+  if (
+    !layerControl ||
+    !Array.isArray(layerControl._layers) ||
+    typeof layerControl._update !== "function"
+  ) {
+    return;
+  }
+
+  const label = municipalityName + EXPOSURE_GROUP_SUFFIX;
+  const exposureLayers = [floodedBuildings, floodedRoads, floodedIdps];
+  let changed = false;
+
+  layerControl._layers.forEach(function (entry) {
+    if (
+      entry &&
+      entry.group &&
+      exposureLayers.indexOf(entry.layer) !== -1 &&
+      entry.group.name !== label
+    ) {
+      entry.group.name = label;
+      changed = true;
+    }
+  });
+
+  if (changed) {
+    layerControl._update();
+  }
+}
+
+function loadExposure(municipalityName) {
+  const name = municipalityName || EXPOSURE_DEFAULT_MUNICIPALITY;
+
+  setExposureGroupLabel(name);
+
+  // Buildings: repoint the GeoServer WMS filter at the selected city.
+  floodedBuildings.setParams({ cql_filter: exposureBuildingsFilter(name) });
+
+  // Roads and IDP sites: small enough to serve as GeoJSON.
+  loadExposureGeoJson(name, "roads", floodedRoads);
+  loadExposureGeoJson(name, "idps", floodedIdps);
+
+  setExposureDownloadLinks(name);
+
+  fetch("/api/exposure/summary/?municipality=" + encodeURIComponent(name))
+    .then(function (response) {
+      return response.json();
+    })
+    .then(renderExposureSummary)
+    .catch(function (error) {
+      console.error("Exposure summary failed:", error);
+    });
+
+  if (legend && legend._div) {
+    updateLegend(legend._div);
+  }
+}
+
+// Flood-exposure layers start OFF - the user enables them from the layer control.
+// loadExposure still runs on first load so the KPI card, the download links and the
+// (buffered) roads / IDP data are ready the moment a layer is switched on.
+loadExposure(EXPOSURE_DEFAULT_MUNICIPALITY);
+
+// Refresh flood-exposure when the municipality selection changes (this is a
+// second listener on #municipalityList; the existing one handles highlight/zoom).
+document
+  .getElementById("municipalityList")
+  .addEventListener("change", function (e) {
+    loadExposure(e.target.value || EXPOSURE_DEFAULT_MUNICIPALITY);
+  });
+
+
+// Section: Accordion filter panel ---------------------------------------------
+// Progressive enhancement over the four native <select> filters. The selects
+// stay in the DOM as the single source of truth (IDs, option values and the
+// existing change-listeners untouched); this builds a compact accordion UI over
+// them and drives them by dispatching a bubbling "change" event.
+(function () {
+  const sectionsHost = document.getElementById("fpSections");
+  const chipsHost = document.getElementById("fpChips");
+  const searchInput = document.getElementById("fpSearch");
+  if (!sectionsHost || !chipsHost) {
+    return;
+  }
+
+  const FILTERS = [
+    { id: "municipalityList", label: "Municipality", searchable: true, open: true },
+    { id: "districtBoundaryList", label: "District", searchable: true, open: false, collapsible: true },
+    { id: "administrativeBoundaryList", label: "Region", searchable: true, open: false, collapsible: true },
+    { id: "droughtYearList", label: "Drought Year", searchable: false, open: false },
+  ];
+
+  // Long option lists (District ~90, Region ~18) show only the first few, with a
+  // "Show N more" toggle.
+  const FP_LIMIT = 5;
+
+  const controls = [];
+
+  function realOptions(select) {
+    return Array.prototype.filter.call(select.options, function (o) {
+      return o.value !== "";
+    });
+  }
+
+  function fireChange(select) {
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
+  function setSectionOpen(ctl, open) {
+    ctl.header.setAttribute("aria-expanded", open ? "true" : "false");
+    ctl.body.hidden = !open;
+  }
+
+  function syncControl(ctl) {
+    ctl.options.forEach(function (o) {
+      o.input.checked = ctl.select.value === o.input.value;
+    });
+  }
+
+  // Decide each option row's visibility from the current search query and, for
+  // collapsible sections, the "Show more" state.
+  function refreshRows(ctl) {
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    const limited = ctl.cfg.collapsible && !ctl.moreExpanded && !query;
+    let shown = 0;
+    let hiddenByLimit = 0;
+
+    ctl.options.forEach(function (o) {
+      let visible = !query || o.label.indexOf(query) !== -1;
+      if (visible && limited && shown >= FP_LIMIT) {
+        visible = false;
+        hiddenByLimit += 1;
+      }
+      if (visible) {
+        shown += 1;
+      }
+      o.row.classList.toggle("fp-hidden", !visible);
+    });
+
+    if (ctl.moreBtn) {
+      const showBtn =
+        ctl.cfg.collapsible && !query && (hiddenByLimit > 0 || ctl.moreExpanded);
+      ctl.moreBtn.hidden = !showBtn;
+      ctl.moreBtn.textContent = ctl.moreExpanded
+        ? "Show fewer"
+        : "Show " + hiddenByLimit + " more";
+    }
+  }
+
+  function renderChips() {
+    chipsHost.innerHTML = "";
+    controls.forEach(function (ctl) {
+      const value = ctl.select.value;
+      if (!value) {
+        return;
+      }
+      const selectedOption = Array.prototype.find.call(
+        ctl.select.options,
+        function (o) {
+          return o.value === value;
+        }
+      );
+      const text = selectedOption ? selectedOption.textContent.trim() : value;
+
+      const chip = document.createElement("span");
+      chip.className = "fp-chip";
+
+      const labelSpan = document.createElement("span");
+      labelSpan.className = "fp-chip-label";
+      labelSpan.textContent = text;
+
+      const clearBtn = document.createElement("button");
+      clearBtn.type = "button";
+      clearBtn.className = "fp-chip-x";
+      clearBtn.setAttribute(
+        "aria-label",
+        "Clear " + ctl.cfg.label + " filter (" + text + ")"
+      );
+      clearBtn.textContent = "×";
+      clearBtn.addEventListener("click", function () {
+        ctl.select.value = "";
+        syncControl(ctl);
+        fireChange(ctl.select);
+        renderChips();
+      });
+
+      chip.appendChild(labelSpan);
+      chip.appendChild(clearBtn);
+      chipsHost.appendChild(chip);
+    });
+  }
+
+  FILTERS.forEach(function (cfg) {
+    const select = document.getElementById(cfg.id);
+    if (!select) {
+      return;
+    }
+
+    select.classList.add("fp-native");
+    select.setAttribute("aria-hidden", "true");
+    select.setAttribute("tabindex", "-1");
+
+    const opts = realOptions(select);
+    const bodyId = "fp-body-" + cfg.id;
+    const headerId = "fp-header-" + cfg.id;
+
+    const section = document.createElement("div");
+    section.className = "fp-section";
+
+    const header = document.createElement("button");
+    header.type = "button";
+    header.className = "fp-header";
+    header.id = headerId;
+    header.setAttribute("aria-controls", bodyId);
+    header.setAttribute("aria-expanded", cfg.open ? "true" : "false");
+    header.innerHTML =
+      '<span class="fp-title">' +
+      cfg.label +
+      ' <span class="fp-count">(' +
+      opts.length +
+      ")</span></span>" +
+      '<span class="fp-icon" aria-hidden="true"></span>';
+
+    const body = document.createElement("div");
+    body.className = "fp-body";
+    body.id = bodyId;
+    body.setAttribute("role", "group");
+    body.setAttribute("aria-labelledby", headerId);
+    body.hidden = !cfg.open;
+
+    const ctl = {
+      cfg: cfg,
+      select: select,
+      header: header,
+      body: body,
+      options: [],
+      preSearchOpen: cfg.open,
+    };
+
+    ctl.options = opts.map(function (opt) {
+      const row = document.createElement("label");
+      row.className = "fp-option";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = "fp-" + cfg.id;
+      input.value = opt.value;
+      input.checked = select.value === opt.value;
+
+      const box = document.createElement("span");
+      box.className = "fp-box";
+
+      const text = document.createElement("span");
+      text.className = "fp-option-label";
+      text.textContent = opt.textContent.trim();
+
+      row.appendChild(input);
+      row.appendChild(box);
+      row.appendChild(text);
+      body.appendChild(row);
+
+      input.addEventListener("change", function () {
+        if (input.checked && select.value !== input.value) {
+          select.value = input.value;
+          fireChange(select);
+        }
+      });
+
+      return { label: text.textContent.toLowerCase(), input: input, row: row };
+    });
+
+    if (cfg.collapsible) {
+      const moreBtn = document.createElement("button");
+      moreBtn.type = "button";
+      moreBtn.className = "fp-more";
+      moreBtn.hidden = true;
+      moreBtn.addEventListener("click", function () {
+        ctl.moreExpanded = !ctl.moreExpanded;
+        refreshRows(ctl);
+      });
+      body.appendChild(moreBtn);
+      ctl.moreBtn = moreBtn;
+      ctl.moreExpanded = false;
+    }
+
+    header.addEventListener("click", function () {
+      const open = header.getAttribute("aria-expanded") !== "true";
+      setSectionOpen(ctl, open);
+      if (!searchInput || !searchInput.value.trim()) {
+        ctl.preSearchOpen = open;
+      }
+    });
+
+    section.appendChild(header);
+    section.appendChild(body);
+    sectionsHost.appendChild(section);
+
+    select.addEventListener("change", function () {
+      syncControl(ctl);
+      // If the current selection sits past the collapsed limit, expand so it shows.
+      if (ctl.cfg.collapsible && !ctl.moreExpanded) {
+        const idx = ctl.options.findIndex(function (o) {
+          return o.input.checked;
+        });
+        if (idx >= FP_LIMIT) {
+          ctl.moreExpanded = true;
+        }
+      }
+      refreshRows(ctl);
+      renderChips();
+    });
+
+    refreshRows(ctl);
+    controls.push(ctl);
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value.trim().toLowerCase();
+
+      controls.forEach(function (ctl) {
+        if (!ctl.cfg.searchable) {
+          return;
+        }
+
+        refreshRows(ctl);
+        const anyMatch = ctl.options.some(function (o) {
+          return !o.row.classList.contains("fp-hidden");
+        });
+
+        setSectionOpen(ctl, query ? anyMatch : ctl.preSearchOpen);
+      });
+    });
+  }
+
+  renderChips();
+})();
 
 
 
