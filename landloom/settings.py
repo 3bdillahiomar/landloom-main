@@ -47,7 +47,7 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
-
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SESSION_COOKIE_SECURE = True
@@ -166,10 +166,43 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 
 
 LEAFLET_CONFIG = {
-    'DEFAULT_CENTER': (2.0543, 45.3114),
-    'DEFAULT_ZOOM': 11,
-    'MIN_ZOOM': 1,
-    'MAX_ZOOM': 20,
+    "DEFAULT_CENTER": (2.0543, 45.3114),
+    "DEFAULT_ZOOM": 11,
+    "MIN_ZOOM": 1,
+    "MAX_ZOOM": 19,
+
+    "TILES": [
+        (
+            "OpenStreetMap",
+            "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                "attribution": "&copy; OpenStreetMap contributors",
+                "maxZoom": 19,
+            },
+        ),
+
+        (
+            "TopPlusOpen Grey",
+            "https://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png",
+            {
+                "attribution": (
+                    '&copy; <a href="https://www.bkg.bund.de/">'
+                    'Bundesamt für Kartographie und Geodäsie (BKG)</a>'
+                ),
+                "maxZoom": 18,
+            },
+        ),
+
+        (
+            "Esri World Imagery",
+            "https://server.arcgisonline.com/ArcGIS/rest/services/"
+            "World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            {
+                "attribution": "Tiles &copy; Esri and its imagery providers",
+                "maxZoom": 19,
+            },
+        ),
+    ],
 }
 
 REST_FRAMEWORK = {
